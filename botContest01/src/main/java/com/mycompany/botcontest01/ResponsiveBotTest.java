@@ -54,7 +54,7 @@ public class ResponsiveBotTest extends UT2004BotModuleController<UT2004Bot> {
      * niveau de vie avant de chercher à en récupérer
      */
     @JProp
-    public int niveauVie = 75;
+    public int niveauVie = 60;
     /**
      * nombre de tuer du bot
      */
@@ -141,7 +141,7 @@ public class ResponsiveBotTest extends UT2004BotModuleController<UT2004Bot> {
      */
     @Override
     public Initialize getInitializeCommand() {
-        //setDesiredSkill(int skill) -> varie de 1 à 7 pour choisir le "niveau de visée du bot"
+        //setDesiredSkill(int skill) -> varie de 1 à 9 pour choisir le "niveau de visée du bot"
         return new Initialize().setName("responsiveBot" + (++instanceCount)).setDesiredSkill(5);
     }
 
