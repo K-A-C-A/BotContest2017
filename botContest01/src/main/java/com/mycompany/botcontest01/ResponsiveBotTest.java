@@ -284,7 +284,7 @@ public class ResponsiveBotTest extends UT2004BotModuleController<UT2004Bot> {
             navigation.stopNavigation();
             item = null;
         }
-        getAct().act(new Rotate().setAmount(32000));
+        getAct().act(new Rotate().setAmount(3600));
     }
 
     //////////////////////
