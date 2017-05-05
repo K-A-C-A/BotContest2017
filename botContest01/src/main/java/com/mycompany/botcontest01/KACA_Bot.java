@@ -137,6 +137,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
      */
     @EventListener(eventClass = PlayerKilled.class)
     public void playerKilled(PlayerKilled event) {
+        getAct().act(new SetCrouch(false));
         if (event.getKiller().equals(info.getId())) {
             ennemi = null;
             escape = false;
@@ -308,22 +309,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
      */
     @Override
     public void logic() {
-        /*
-        if (!weaponry.hasWeapon(arme)) {
-    		log.info("Getting WEAPON");
-    		getAct().act(new AddInventory().setType(arme.getName()));
-    		return; 
-    	}
-    	if (!weaponry.hasLoadedWeapon(arme)) {
-    		log.info("Getting AMMO");
-    		getAct().act(new AddInventory().setType(munition.getName()));
-    		return;    	
-    	}
-    	
-    	if (weaponry.getCurrentWeapon().getType() != arme) {
-    		weaponry.changeWeapon(arme);
-    		return;
-    	}*/
+        
         //prends une arme de la liste des preferences
         weaponry.changeWeapon(weaponPrefs.getWeaponPreference().getWeapon());
 
