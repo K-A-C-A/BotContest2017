@@ -925,6 +925,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         }    
       }
       
+      private int tempo = 0;
       private boolean bulleShot=false;
         private void shootShockRifle(Player lastPlayer){
 
