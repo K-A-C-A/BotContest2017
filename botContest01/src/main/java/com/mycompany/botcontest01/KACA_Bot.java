@@ -103,12 +103,11 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     
     private long   logicIterationNumber = 0;
 
-    private final int enought_hp = 85;
     private final double horizontalSpeed = 5;
     private final double lowAmmoShieldGun = 0.6;
-    private final double secondJumpDelay = 0.5;
-    private final double jumpZ = 680;
-    private int rotation;
+    private double angular;
+    private final double rotateLeftBack = Math.PI/3;
+    private final double rotateRightBack = -Math.PI/3;
     
     private UT2004ItemType weaponSelected;
     
@@ -614,17 +613,20 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 return;
             }
             
-            //si un obstacle detecté pour back
+            double rotation = 0;
+            
+            //si un obstacle detecte pour back
             if (backB){
                 turn = true;
-                //si pas d'obstacle detecté pour left
+                
+                //si pas d'obstacle detecte pour left
                 if (!leftB) {
                     //move.strafeLeft(pas, ennemi);
-                    rotation = 45;
-                }//si pas d'obstacle detecté pour right
+                    rotation = rotateLeftBack;
+                }//si pas d'obstacle detecte pour right
                 else if (!rightB) {
                     //move.strafeRight(pas, ennemi);
-                    rotation = -45;
+                    rotation = rotateRightBack;
                 }//sinon impasse
                 else{
                     //cas ou les 3 rayons sont rouges
@@ -634,21 +636,16 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
             
             
         if(turn){
-            double sinAlpha = Math.sin(rotation);
-            double cosAlpha = Math.cos(rotation);
             Location l = Location.sub(bot.getLocation(), ennemi.getLocation());
-            double xPrime = (l.x * cosAlpha - l.y * sinAlpha);
-            double yPrime = (l.x * sinAlpha + l.y * cosAlpha);
-            double z = l.z;
-            Location lPrime = new Location(xPrime, yPrime, z).scale(100);
-            l = Location.add(bot.getLocation(), lPrime);
+            l = l.rotateXY(rotation);
+            l = Location.add(bot.getLocation(), l);
             move.strafeTo(l, ennemi);
             turn = false;
         }
         else{
             //direction de l'ennemi
-            Location l = Location.add(bot.getLocation(), Location.sub(bot.getLocation(), ennemi.getLocation()));
-            move.strafeTo(l, ennemi);
+            Location vector = Location.sub(bot.getLocation(), ennemi.getLocation());
+            switchStrafe(ennemi, vector);
         }
         
     }
@@ -952,40 +949,67 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
             else shoot.shoot(lastPlayer.getLocation());
           }
       }
+        
     private void shootMiniGun(Player lastPlayer){
-            if (lastPlayer!=null){
-                if (distance < 1000)
-                    shoot.shoot(lastPlayer);
-                else 
-                    shoot.shootSecondary(lastPlayer);
-            }
+        if (lastPlayer!=null){
+            if (distance < 1000)
+                shoot.shoot(lastPlayer);
+            else 
+                shoot.shootSecondary(lastPlayer);
+        }
       }
+    
     private boolean shooting=false;
+    
     private void shootAssault(Player lastPlayer){
-         if (lastPlayer!=null){
-                if (distance < 1000){
-                    if (!shooting){
+        if (lastPlayer!=null){
+            if (distance < 1000){
+                if (!shooting){
                     shoot.shootSecondary(ennemi);
                     shooting=true;
-                    }
-                    else {
+                }
+                else {
                     shoot.stopShooting();
                     shooting=false;
-                    }
-                    
-                    //shoot.stopShooting();
-                    sayGlobal("SHOT");
                 }
-                else 
-                    shoot.shootSecondary(lastPlayer);
+
+                //shoot.stopShooting();
+                sayGlobal("SHOT");
             }
+            else 
+                shoot.shootSecondary(lastPlayer);
+           }
     }
     private void shootBioRifle(Player lastPlayer){
-            if (lastPlayer!=null){
-                if (distance > 1000)
-                    shoot.shootSecondary();
-                else 
-                    shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()-(bot.getLocation().getDistanceZ(lastPlayer.getLocation()))/10).add(lastPlayer.getVelocity().scale(coeff)));
-            }
-      }
+        if (lastPlayer!=null){
+            if (distance > 1000)
+                shoot.shootSecondary();
+            else 
+                shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()-(bot.getLocation().getDistanceZ(lastPlayer.getLocation()))/10).add(lastPlayer.getVelocity().scale(coeff)));
+        }
+    }
+    
+    public void switchStrafe(Player player, Location vector){
+        
+        int choix = (int)Math.round(Math.random() * 2);
+        switch (choix){
+            case 1 :
+                angular = Math.PI/12;
+                break;
+            case 2 :
+                angular = -Math.PI/12;
+                break;
+            default :
+                angular = 0;
+                break;
+
+        }
+
+        //Location l = Location.sub(player.getLocation(), bot.getLocation());
+        
+        Location l = vector.rotateXY(angular);
+        l = Location.add(bot.getLocation(), l);
+        move.strafeTo(l, player);
+        
+    }
 }
