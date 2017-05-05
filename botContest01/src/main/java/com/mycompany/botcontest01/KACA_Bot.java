@@ -946,7 +946,16 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 bulleShot=true;
 
             }
-            else shoot.shoot(lastPlayer.getLocation());
+            else {
+                if (tempo==4){
+                    shoot.shoot(lastPlayer.getLocation());
+                    sayGlobal("TIR"+String.valueOf(tempo));
+                    tempo=(tempo+1) %10;
+                    return;
+                            }
+                tempo=(tempo+1) %5;
+                shoot.stopShooting();
+            }
           }
       }
         
