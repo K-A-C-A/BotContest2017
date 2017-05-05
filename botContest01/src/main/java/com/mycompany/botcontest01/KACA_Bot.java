@@ -421,7 +421,6 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 log.info("Tirer sur l'ennemi!!!");
                 fire = true;
             }*/
-             sensorFront = front.isResult();
             if (weaponry.getCurrentWeapon().getType() == UT2004ItemType.ROCKET_LAUNCHER) 
                 shootRocketLauncher(ennemi);
             else if (weaponry.getCurrentWeapon().getType() == UT2004ItemType.LINK_GUN)
@@ -438,7 +437,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 //shootAssault(ennemi);
             else 
             shoot.shoot(ennemi);
-
+	    fire=true;
         }
         
         // 3) Si l'ennemis n'est pas visible ou trop loin -> vas vers lui
@@ -774,7 +773,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     boolean green=false;
    
     
-    private void shootRocketLauncher(Player lastPlayer){
+      private void shootRocketLauncher(Player lastPlayer){
          if (lastPlayer!=null){
             if (distance < 500){
                 move.jump();
@@ -785,28 +784,26 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                     oldVelocity1=lastPlayer.getVelocity().scale(coeff);
                 }
                 modu=(modu+1) %2;
+                raycasting.createRay(UNDERSHOT,   new Vector3d(1, 0, Zdistance-0.03), (int)distance, true, false, false);
+                sensorFront=undershot.isResult();
                 if (!sensorFront||green){
                     if ((oldVelocity1.getX()-lastPlayer.getVelocity().scale(coeff).getX()>150 || oldVelocity1.scale(coeff).getX()-lastPlayer.getVelocity().scale(coeff).getX()<-150)|| (oldVelocity1.scale(coeff).getY() -lastPlayer.getVelocity().scale(coeff).getY()>150 || oldVelocity1.scale(coeff).getY()-lastPlayer.getVelocity().scale(coeff).getY()<-150)){
                         if (jukeTEMP <=1){
-                            shoot.shoot(lastPlayer);
-                            sayGlobal("JUKE");
-
+                            shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()-40));
                         }
                         jukeTEMP =0;
                         return;
                     }
-                    shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()).add(lastPlayer.getVelocity().scale(coeff)));
-                    sayGlobal("GREEN SENSOR");
+                    shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()-40).add(lastPlayer.getVelocity().scale(coeff)));
                     jukeTEMP=+1;
                     green=sensorFront;                
                 }
                 else{
-                    sayGlobal("RED SENSOR");
-                        raycasting.createRay(UNDERSHOT,   new Vector3d(1, 0, Zdistance-0.03), (int)distance, true, false, false);
-                        sensorDown=undershot.isResult();
+                        raycasting.createRay(FRONT,   new Vector3d(1, 0, Zdistance), (int)distance, true, false, false);
+                        sensorDown=front.isResult();
 
                     if (!sensorDown){
-                        shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()-40).add(lastPlayer.getVelocity().scale(coeff)));
+                        shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()).add(lastPlayer.getVelocity().scale(coeff)));
                         return;
                     }
 
@@ -838,21 +835,11 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                     shoot.shoot(ennemi);
                     green=false;
                 }
-            }/*
-                if(!info.isFacing(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()-(bot.getLocation().getDistanceZ(lastPlayer.getLocation()))/10).add(lastPlayer.getVelocity().scale(coeff)))) {
-                   sayGlobal("not facing");
-                   sayGlobal(oldVelocity1.toString() + lastPlayer.getVelocity().scale(coeff).toString());
-                   shoot.stopShooting();
-
-                   move.turnTo(lastPlayer.getLocation().setZ(bot.getLocation().getZ()).add(lastPlayer.getVelocity().scale(coeff)));
-                  return; 
-                }
-              */       
+            }     
         }
     }
-    private int jukeTEMP;
-    private boolean sensorDown;
-    
+ private int jukeTEMP;
+ private boolean sensorDown;
  private void shootLinkGun(Player lastPlayer){
 
         if (lastPlayer!=null){
@@ -863,6 +850,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                     oldVelocity1=lastPlayer.getVelocity().scale(coeff);
                 }
                 modu=(modu+1) %2;
+		sensorFront=front.isResult();
                 if (!sensorFront||green){
                     if ((oldVelocity1.getX()-lastPlayer.getVelocity().scale(coeff).getX()>150 || oldVelocity1.scale(coeff).getX()-lastPlayer.getVelocity().scale(coeff).getX()<-150)|| (oldVelocity1.scale(coeff).getY() -lastPlayer.getVelocity().scale(coeff).getY()>150 || oldVelocity1.scale(coeff).getY()-lastPlayer.getVelocity().scale(coeff).getY()<-150)){
                         if (jukeTEMP <=1){
