@@ -745,6 +745,10 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         final int rayLength = (int) (ennemi.getLocation().add(ennemi.getVelocity().scale(coeff).asLocation()).getDistance(bot.getLocation()))-150;
         Zdistance=ennemi.getLocation().setZ(ennemi.getLocation().getZ()+20).add(ennemi.getVelocity()).getDistanceZ(bot.getLocation())/distance ;;          
         raycasting.createRay(FRONT,   new Vector3d(1, 0, Zdistance), rayLength, true, false, false);
+        raycasting.createRay(UNDERSHOT,   new Vector3d(1, 0, Zdistance-0.03), rayLength, true, false, false);
+        raycasting.createRay(LEFTSHOT,   new Vector3d(1, -0.03, Zdistance), (int)distance, true, false, false);
+        raycasting.createRay(UPSHOT,   new Vector3d(1, 0, Zdistance+0.03), (int)distance, true, false, false);
+        raycasting.createRay(RIGHTSHOT,   new Vector3d(1, 0.03, Zdistance), (int)distance, true, false, false);
     }
     private IncomingProjectile pickProjectile() {
 		return DistanceUtils.getNearest(world.getAll(IncomingProjectile.class).values(), info.getLocation());
@@ -767,72 +771,84 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     	}
 		return false;
 	}
-    boolean green=false;
    
     
-      private void shootRocketLauncher(Player lastPlayer){
+       private void shootRocketLauncher(Player lastPlayer){
          if (lastPlayer!=null){
-            if (distance < 500){
-                move.jump();
-                shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()-40));
-            }
-            else {
-                if (modu==0){
-                    oldVelocity1=lastPlayer.getVelocity().scale(coeff);
+            if (lastPlayer.isVisible()){
+                sayGlobal(lastPlayer.getVelocity().toString());
+                if (distance < 500){
+                    move.jump();
+                    shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()-40));
                 }
-                modu=(modu+1) %2;
-                raycasting.createRay(UNDERSHOT,   new Vector3d(1, 0, Zdistance-0.03), (int)distance, true, false, false);
-                sensorFront=undershot.isResult();
-                if (!sensorFront||green){
-                    if ((oldVelocity1.getX()-lastPlayer.getVelocity().scale(coeff).getX()>150 || oldVelocity1.scale(coeff).getX()-lastPlayer.getVelocity().scale(coeff).getX()<-150)|| (oldVelocity1.scale(coeff).getY() -lastPlayer.getVelocity().scale(coeff).getY()>150 || oldVelocity1.scale(coeff).getY()-lastPlayer.getVelocity().scale(coeff).getY()<-150)){
-                        if (jukeTEMP <=1){
-                            shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()-40));
+                else {
+                    if ((int)lastPlayer.getVelocity().getZ()>0){
+                        shoot.stopShooting();
+                        sayGlobal("NO SHOOTIN");
+                        return;
+                    }
+                    if (modu==0){
+                        oldVelocity1=lastPlayer.getVelocity().scale(coeff);
+                    }
+                    modu=(modu+1) %2;
+                   // raycasting.createRay(UNDERSHOT,   new Vector3d(1, 0, Zdistance-0.03), (int)distance, true, false, false);
+                    sensorFront=undershot.isResult();
+                    if (!sensorFront){
+                        if ((oldVelocity1.getX()-lastPlayer.getVelocity().scale(coeff).getX()>150 || oldVelocity1.scale(coeff).getX()-lastPlayer.getVelocity().scale(coeff).getX()<-150)|| (oldVelocity1.scale(coeff).getY() -lastPlayer.getVelocity().scale(coeff).getY()>150 || oldVelocity1.scale(coeff).getY()-lastPlayer.getVelocity().scale(coeff).getY()<-150)){
+                            if (jukeTEMP <=1){
+                                sayGlobal("JUKESHoT");
+                                shoot.shoot(lastPlayer.getLocation().add(lastPlayer.getVelocity().scale(0.1)));
+                            }
+                            jukeTEMP =0;
+                            return;
                         }
-                        jukeTEMP =0;
-                        return;
+                        shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()-40).add(lastPlayer.getVelocity().scale(coeff)));
+                        jukeTEMP=+1;
                     }
-                    shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()-40).add(lastPlayer.getVelocity().scale(coeff)));
-                    jukeTEMP=+1;
-                    green=sensorFront;                
-                }
-                else{
-                        raycasting.createRay(FRONT,   new Vector3d(1, 0, Zdistance), (int)distance, true, false, false);
-                        sensorDown=front.isResult();
+                    else{ 
+                        //    raycasting.createRay(FRONT,   new Vector3d(1, 0, Zdistance), (int)distance, true, false, false);
+                            sensorDown=front.isResult();
 
-                    if (!sensorDown){
-                        shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()).add(lastPlayer.getVelocity().scale(coeff)));
-                        return;
+                        if (!sensorDown){
+                            sayGlobal("FRONT");
+                            shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()).add(lastPlayer.getVelocity().scale(coeff)));
+                            return;
+                        }
+
+                       // raycasting.createRay(UPSHOT,   new Vector3d(1, 0, Zdistance+0.03), (int)distance, true, false, false);
+
+                        sensorDown=upshot.isResult();
+
+                        if (!sensorDown){
+                            sayGlobal("UP");
+                            shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()+40).add(lastPlayer.getVelocity().scale(coeff)));
+                            return;
+                        }
+
+                       // raycasting.createRay(LEFTSHOT,   new Vector3d(1, -0.03, Zdistance), (int)distance, true, false, false);
+                        sensorDown=leftshot.isResult();
+                        if (!sensorDown){
+                            sayGlobal("LEFT");
+
+                            shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()).setY(lastPlayer.getLocation().getY()-40).add(lastPlayer.getVelocity().scale(coeff)));
+                            return;
+                        }
+
+                       // raycasting.createRay(RIGHTSHOT,   new Vector3d(1, 0.03, Zdistance), (int)distance, true, false, false);
+                        sensorDown=rightshot.isResult();
+                        if (!sensorDown){
+                            sayGlobal("RIGHT");
+                            shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()).setY(lastPlayer.getLocation().getY()+40).add(lastPlayer.getVelocity().scale(coeff)));
+                            return;
+                        }
+
+                        sayGlobal("POSITION");
+
+                        jukeTEMP=+1;
+                        shoot.stopShooting();
                     }
-
-                    raycasting.createRay(UPSHOT,   new Vector3d(1, 0, Zdistance+0.03), (int)distance, true, false, false);
-                    
-                    sensorDown=upshot.isResult();
-
-                    if (!sensorDown){
-                        shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()+40).add(lastPlayer.getVelocity().scale(coeff)));
-                        return;
-                    }
-
-                    raycasting.createRay(LEFTSHOT,   new Vector3d(1, -0.03, Zdistance), (int)distance, true, false, false);
-                    sensorDown=leftshot.isResult();
-                    if (!sensorDown){
-                        shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()).setY(lastPlayer.getLocation().getY()-40).add(lastPlayer.getVelocity().scale(coeff)));
-                        return;
-                    }
-
-                    raycasting.createRay(RIGHTSHOT,   new Vector3d(1, 0.03, Zdistance), (int)distance, true, false, false);
-                    sensorDown=rightshot.isResult();
-                    if (!sensorDown){
-                        shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()).setY(lastPlayer.getLocation().getY()+40).add(lastPlayer.getVelocity().scale(coeff)));
-                        return;
-                    }
-                   
-                    
-                    jukeTEMP=+1;
-                    shoot.shoot(ennemi);
-                    green=false;
-                }
-            }     
+                }     
+            }
         }
     }
  private int jukeTEMP;
@@ -848,7 +864,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 }
                 modu=(modu+1) %2;
 		sensorFront=front.isResult();
-                if (!sensorFront||green){
+                if (!sensorFront){
                     if ((oldVelocity1.getX()-lastPlayer.getVelocity().scale(coeff).getX()>150 || oldVelocity1.scale(coeff).getX()-lastPlayer.getVelocity().scale(coeff).getX()<-150)|| (oldVelocity1.scale(coeff).getY() -lastPlayer.getVelocity().scale(coeff).getY()>150 || oldVelocity1.scale(coeff).getY()-lastPlayer.getVelocity().scale(coeff).getY()<-150)){
                         if (jukeTEMP <=1){
                             shoot.shoot(lastPlayer);
@@ -861,7 +877,6 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                     shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()).add(lastPlayer.getVelocity().scale(coeff)));
                     sayGlobal("GREEN SENSOR");
                     jukeTEMP=+1;
-                    green=sensorFront;                
                 }
                 else{
                     sayGlobal("RED SENSOR");
@@ -899,7 +914,6 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                     
                     jukeTEMP=+1;
                     shoot.shoot(ennemi);
-                    green=false;
                 }
             }/*
                 if(!info.isFacing(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()-(bot.getLocation().getDistanceZ(lastPlayer.getLocation()))/10).add(lastPlayer.getVelocity().scale(coeff)))) {
