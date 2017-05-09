@@ -112,6 +112,10 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     private UT2004ItemType weaponSelected;
     
     protected static final String BACK = "Back";
+    protected static final String LEFT_BACK = "LeftBack";
+    protected static final String RIGHT_BACK = "RightBack";
+    protected static final String LEFT_FRONT = "LeftFront";
+    protected static final String RIGHT_FRONT = "RightFront";
     protected static final String LEFT = "Left";
     protected static final String RIGHT = "Right";
     protected static final String BEHIND = "Behind";
@@ -123,9 +127,10 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
 
     private boolean sensorFront = false;
     
-    private AutoTraceRay left, back, right, behind,leftshot,undershot,rightshot,upshot,front;
+    private AutoTraceRay leftshot,undershot,rightshot,upshot,front;
+    private AutoTraceRay leftBack, back, rightBack, right, left, leftFront, rightFront, behind;
     
-    boolean leftB, backB, rightB, behindG;
+    boolean leftB, backB, rightB, behindG, leftF, leftG, rightF, rightG;
     
     //UT2004ItemType arme=UT2004ItemType.ROCKET_LAUNCHER;
     //UT2004ItemType munition=UT2004ItemType.ROCKET_LAUNCHER_AMMO;
@@ -223,8 +228,12 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         getAct().act(new RemoveRay("All"));
         
         raycasting.createRay(BACK,   new Vector3d(-1, 0, 0), longRay, fastTrace, floorCorrection, traceActor);
-        raycasting.createRay(LEFT,  new Vector3d(-1, -1, 0), mediumRay, fastTrace, floorCorrection, traceActor);
-        raycasting.createRay(RIGHT, new Vector3d(-1, 1, 0), mediumRay, fastTrace, floorCorrection, traceActor);
+        raycasting.createRay(LEFT_BACK,  new Vector3d(-1, -1, 0), mediumRay, fastTrace, floorCorrection, traceActor);
+        raycasting.createRay(RIGHT_BACK, new Vector3d(-1, 1, 0), mediumRay, fastTrace, floorCorrection, traceActor);
+        raycasting.createRay(LEFT_FRONT,  new Vector3d(1, -1, 0), mediumRay, fastTrace, floorCorrection, traceActor);
+        raycasting.createRay(RIGHT_FRONT, new Vector3d(1, 1, 0), mediumRay, fastTrace, floorCorrection, traceActor);
+        raycasting.createRay(LEFT,  new Vector3d(0, -1, 0), mediumRay, fastTrace, floorCorrection, traceActor);
+        raycasting.createRay(RIGHT, new Vector3d(0, 1, 0), mediumRay, fastTrace, floorCorrection, traceActor);
         raycasting.createRay(BEHIND, new Vector3d(-1, 0, -2), mediumRay, fastTrace, floorCorrection, traceActor);
         raycasting.createRay(FRONT,   new Vector3d(1, 0, 0), mediumRay, fastTrace, floorCorrection, traceActor);
         raycasting.createRay(UNDERSHOT,   new Vector3d(1, 0, -0.03), mediumRay, fastTrace, floorCorrection, traceActor);
@@ -239,9 +248,13 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 // once all rays were initialized store the AutoTraceRay objects
                 // that will come in response in local variables, it is just
                 // for convenience
+                leftBack = raycasting.getRay(LEFT_BACK);
                 left = raycasting.getRay(LEFT);
+                leftFront = raycasting.getRay(LEFT_FRONT);
                 back = raycasting.getRay(BACK);
+                rightBack = raycasting.getRay(RIGHT_BACK);
                 right = raycasting.getRay(RIGHT);
+                rightFront = raycasting.getRay(RIGHT_FRONT);
                 behind = raycasting.getRay(BEHIND);
                 front = raycasting.getRay(FRONT);
                 undershot=raycasting.getRay(UNDERSHOT);
@@ -601,9 +614,9 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     
     public void goBackward(){
         
-            leftB = left.isResult();
+            leftB = leftBack.isResult();
             backB = back.isResult();
-            rightB = right.isResult();
+            rightB = rightBack.isResult();
             behindG = behind.isResult();
             
             //Si il y a du vide derrière lui
@@ -1022,4 +1035,105 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         move.strafeTo(l, player);
         
     }
+    
+    public void switchStrafe(Item item, Location vector){
+        
+        if (!item.isVisible()) {
+            navigation.navigate(item);
+            return;
+        }
+        
+        int choix = (int)Math.round(Math.random() * 2);
+        switch (choix){
+            case 1 :
+                angular = Math.PI/12;
+                break;
+            case 2 :
+                angular = -Math.PI/12;
+                break;
+            default :
+                angular = 0;
+                break;
+
+        }
+
+        //Location l = Location.sub(player.getLocation(), bot.getLocation());
+        
+        Location l = vector.rotateXY(angular);
+        l = Location.add(bot.getLocation(), l);
+        move.strafeTo(l, item);
+        
+    }
+    
+    public void avoidProjectile (Player ennemy) {
+        
+        if (this.seeIncomingProjectile()) {
+            
+            rightG = right.isResult();
+            leftG = left.isResult();
+            
+            if (ennemy.getLocation().getDistance(bot.getLocation()) > 1000) {
+                if (!rightG)
+                    move.strafeLeft(150);
+                else if (!leftG)
+                    move.strafeRight(150);
+                else
+                    move.jump();
+            } else {
+                
+                int choix = (int)Math.round(Math.random() * 39);
+                
+                switch (choix) {
+                    case 0:
+                    case 1:
+                    case 2:
+                    case 3:
+                    case 4:
+                    case 5:
+                    case 6:
+                        return;
+                    case 7:
+                    case 8:
+                    case 9:
+                    case 10:
+                    case 11:
+                    case 12:
+                    case 13:
+                    case 14:
+                    case 15:
+                    case 16:
+                    case 17:
+                    case 18:
+                    case 19:
+                    case 20:
+                        if (!rightG)
+                            move.strafeLeft(150);
+                        else
+                            move.strafeRight(150);
+                        return;
+                    case 21:
+                    case 22:
+                    case 23:
+                        if (!rightG)
+                            move.dodgeLeft(ennemy, false);
+                        else
+                            move.dodgeRight(ennemy, false);
+                        return;
+                    case 24:
+                    case 25:
+                        if (!rightG)
+                            move.strafeRight(150);
+                        else
+                            move.strafeLeft(150);
+                        return;
+                    default:
+                        move.jump();
+                        return;
+                }
+                
+            }
+            
+        }
+    } 
+    
 }
