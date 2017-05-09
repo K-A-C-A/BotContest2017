@@ -413,8 +413,8 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
             goToPlayer = false;
         } else {
             // 2) tires sur l'ennemi s'il est visible
-            
-            navigation.setFocus(ennemi.getLocation().add(ennemi.getVelocity()));
+            coeff=calculCoeff(distance);
+            navigation.setFocus(ennemi.getLocation().add(ennemi.getVelocity().scale(coeff)));
             /*
             if (shoot.shoot(weaponPrefs, ennemi) != null) {
                 log.info("Tirer sur l'ennemi!!!");
