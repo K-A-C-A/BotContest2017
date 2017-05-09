@@ -244,6 +244,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
          // register listener called when all rays are set up in the UT engine
         raycasting.getAllRaysInitialized().addListener(new FlagListener<Boolean>() {
 
+	    @Override
             public void flagChanged(Boolean changedValue) {
                 // once all rays were initialized store the AutoTraceRay objects
                 // that will come in response in local variables, it is just
