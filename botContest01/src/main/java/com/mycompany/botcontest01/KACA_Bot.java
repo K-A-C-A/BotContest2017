@@ -44,49 +44,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import javax.vecmath.Vector3d;
+import tools.*;
 
 
 @AgentScoped
 public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
-    
-    /**
-     * booléen pour engager le combat avec un ennemi
-     */
-    @JProp
-    public boolean engage = true;
-    /**
-     * booléen pour poursuivre un ennemi
-     */
-    @JProp
-    public boolean hunt = true;
-    /**
-     * booléen pour savoir s'il doit se réarmer
-     */
-    @JProp
-    public boolean rearm = true;
-    /**
-     * booléen pour aller chercher de la vie
-     */
-    @JProp
-    public boolean healthCollect = true;
-    /**
-     * niveau de vie avant de chercher à en récupérer
-     */
-    @JProp
-    public int health = 60;
-    /**
-     * nombre de tuer du bot
-     */
-    @JProp
-    public int kills = 0;
-    /**
-     * nombre de morts du bot
-     */
-    @JProp
-    public int deaths = 0;
 
+    private Profile profile = new Profile();
+    private Situation situation = new Situation();
+    private Action actionChoice = Action.BASIC_COLLECT;
     
     private long escapeCount = 0;
+    private final int healthNeeded = 60;
     
     private long logicIterationEscape;
     private final long logic_escape = 30;
@@ -94,10 +63,9 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     final int longRay = 400;
     final int mediumRay = 300;
     final int shortRay = 200;
+    final int veryShortRay = 100;
     
     private boolean injured = false;
-    private boolean escape = false;
-    private boolean justEscaped = false;
     private boolean isLowAmmoShieldGun = false;
     private boolean turn = false;
     
@@ -144,15 +112,17 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         getAct().act(new SetCrouch(false));
         if (event.getKiller().equals(info.getId())) {
             ennemi = null;
-            escape = false;
-            ++kills;
+            situation.escape = false;
+            situation.incKills();
+            profile.angerModified(-5);
+            profile.trustModifiedBy(8);
         }
         if (ennemi == null) {
             return;
         }
         if (ennemi.getId().equals(event.getId())) {
             ennemi = null;
-            escape = false;
+            situation.escape = false;
         }
         
     }
@@ -232,8 +202,8 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         raycasting.createRay(RIGHT_BACK, new Vector3d(-1, 1, 0), mediumRay, fastTrace, floorCorrection, traceActor);
         raycasting.createRay(LEFT_FRONT,  new Vector3d(1, -1, 0), mediumRay, fastTrace, floorCorrection, traceActor);
         raycasting.createRay(RIGHT_FRONT, new Vector3d(1, 1, 0), mediumRay, fastTrace, floorCorrection, traceActor);
-        raycasting.createRay(LEFT,  new Vector3d(0, -1, 0), mediumRay, fastTrace, floorCorrection, traceActor);
-        raycasting.createRay(RIGHT, new Vector3d(0, 1, 0), mediumRay, fastTrace, floorCorrection, traceActor);
+        raycasting.createRay(LEFT,  new Vector3d(0, -1, 0), veryShortRay, fastTrace, floorCorrection, traceActor);
+        raycasting.createRay(RIGHT, new Vector3d(0, 1, 0), veryShortRay, fastTrace, floorCorrection, traceActor);
         raycasting.createRay(BEHIND, new Vector3d(-1, 0, -2), mediumRay, fastTrace, floorCorrection, traceActor);
         raycasting.createRay(FRONT,   new Vector3d(1, 0, 0), mediumRay, fastTrace, floorCorrection, traceActor);
         raycasting.createRay(UNDERSHOT,   new Vector3d(1, 0, -0.03), mediumRay, fastTrace, floorCorrection, traceActor);
@@ -289,7 +259,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         navigation.stopNavigation();
         CollectItems = null;
         injured = false;
-        escape = false;
+        situation.escape = false;
         isLowAmmoShieldGun = false;
         turn = false;
         huntCount = 0;
@@ -322,35 +292,36 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
      */
     @Override
     public void logic() {
-        
-        //prends une arme de la liste des preferences
-        weaponry.changeWeapon(weaponPrefs.getWeaponPreference().getWeapon());
 
-        if(justEscaped){
+        situation.situationActualisation(info.getArmor(), players.getVisibleEnemies().size(), info.getHealth());
+        
+        if (situation.justEscaped) {
             ++logicIterationNumber;
             if (logicIterationNumber > 8){
-                justEscaped = false;
+                situation.justEscaped = false;
                 logicIterationNumber = 0;
             }
         }
         
-        if (info.getHealth() < 40 && !justEscaped) 
-            escape = true;
+        if (info.getHealth() < 40 && !situation.justEscaped) 
+            situation.escape = true;
         else 
-            escape = false;
+            situation.escape = false;
         
         // 1) niveau de vie faible
-        if (ennemi != null && escape && !hasLowAmmoForWeapon(UT2004ItemType.SHIELD_GUN, 0.1)) {
+        if (ennemi != null && situation.escape && !hasLowAmmoForWeapon(UT2004ItemType.SHIELD_GUN, 0.1)) {
             this.escapeState();
             return;
         }
         else { 
-            escape = false;
+            situation.escape = false;
         }
         
-
+        //prends une arme de la liste des preferences
+        weaponry.changeWeapon(weaponPrefs.getWeaponPreference().getWeapon());
+        
         // 2) ennemi repéré ? 	-> poursuivre (tirer / suivre)
-        if (engage && players.canSeeEnemies() && weaponry.hasLoadedWeapon()) {
+        if (situation.engage && players.canSeeEnemies() && weaponry.hasLoadedWeapon()) {
             initRayToEnnemi();
             engageState();
             return;
@@ -371,13 +342,13 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         }
         
         // 5) ennemi poursuivis -> va à la dernière position connue de l'ennemi
-        if (ennemi != null && hunt && weaponry.hasLoadedWeapon()) {
+        if (ennemi != null && situation.hunt && weaponry.hasLoadedWeapon()) {
             this.huntState();
             return;
         }
         
         // 6) blessé ?			-> cherche des soins
-        if (healthCollect && info.getHealth() < health) {
+        if (situation.healthCollect && info.getHealth() < healthNeeded) {
             this.healingState();
             return;
         }
@@ -512,7 +483,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         }
         ++escapeCount;
         if(ennemi == null){
-            justEscaped = true;
+            situation.justEscaped = true;
             reset();
         }
         
@@ -526,7 +497,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
             protect();
         }
         else{
-            justEscaped = true;
+            situation.justEscaped = true;
             reset();
         }
     }
@@ -599,6 +570,10 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     @Override
     public void botKilled(BotKilled event) {
         reset();
+        situation.incDeaths();
+        profile.angerModified(8);
+        profile.cautionModifiedBy(-5);
+        profile.trustModifiedBy(-7);
     }
 
 //    public static void main(String args[]) throws PogamutException {

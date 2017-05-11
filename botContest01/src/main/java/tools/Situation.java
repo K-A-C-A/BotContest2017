@@ -22,35 +22,25 @@ package tools;
  */
 public class Situation {
     
+    //booléens décrivant ce que fait le bot
+    public boolean basic = true;
+    public boolean engage = true;
+    public boolean hunt = true;
+    public boolean rearm = true;
+    public boolean healthCollect = true;
+    public boolean escape = false;
+    
+    
+    //information    
+    public boolean justEscaped = true;
     private int nb_visible_enemies = 0;
-    private int nb_visible_objects;
-    private int nb_weapon_ammo = 100;
-    private int nb_max_weapon_ammo;
     private int health_level = 100;
     private int armor_level = 0;
     private int deaths = 0;
     private int kills = 0;
     
-    public Situation (int object, int weapon_ammo, int max_weapon_ammo) {
-        this.nb_visible_objects = object;
-        this.nb_weapon_ammo = weapon_ammo;
-        this.nb_max_weapon_ammo = max_weapon_ammo;
-    }
-    
     public int getNbVisibleEnnemies () {
         return this.nb_visible_enemies;
-    }
-    
-    public int getVisibleObjects () {
-        return this.nb_visible_objects;
-    }
-    
-    public int getNbWeaponAmmo () {
-        return this.nb_weapon_ammo;
-    }
-    
-    public int getNbMaxWeaponAmmo () {
-        return this.nb_max_weapon_ammo;
     }
     
     public int getHealthLevel () {
@@ -77,13 +67,19 @@ public class Situation {
         this.kills++;
     }
     
-    public void SituationActualisation (int armor, int enemy, int weapon, int max_weapon, int object, int health) {
+    public void situationActualisation (int armor, int enemy, int health) {
         this.armor_level = armor;
         this.nb_visible_enemies = enemy;
-        this.nb_weapon_ammo = weapon;
-        this.nb_max_weapon_ammo = max_weapon;
-        this.nb_visible_objects = object;
         this.health_level = health;
+    }
+    
+    public void resetStatut () {
+        basic = true;
+        engage = false;
+        hunt = false;
+        rearm = false;
+        healthCollect = false;
+        escape = false;
     }
     
 }

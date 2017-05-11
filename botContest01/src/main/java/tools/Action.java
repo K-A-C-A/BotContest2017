@@ -27,7 +27,6 @@ public enum Action {
     ESCAPE,
     PROTECTED_ESCAPE,
     BASIC_COLLECT,
-    HEALTH,
-    SWITCH_WEAPON;
+    HEALTH;
     
 }

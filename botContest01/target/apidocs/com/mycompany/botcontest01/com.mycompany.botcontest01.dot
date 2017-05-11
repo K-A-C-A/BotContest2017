@@ -9,10 +9,10 @@ digraph G {
 	node [fontname="arial",fontsize=10,shape=plaintext];
 	nodesep=0.25;
 	ranksep=0.5;
-	// com.mycompany.botcontest01.ResponsiveBotTest
-	c0 [label=<<table title="com.mycompany.botcontest01.ResponsiveBotTest" border="0" cellborder="1" cellspacing="0" cellpadding="2" port="p" href="./ResponsiveBotTest.html">
+	// com.mycompany.botcontest01.KACA_Bot
+	c0 [label=<<table title="com.mycompany.botcontest01.KACA_Bot" border="0" cellborder="1" cellspacing="0" cellpadding="2" port="p" href="./KACA_Bot.html">
 		<tr><td><table border="0" cellspacing="0" cellpadding="1">
-<tr><td align="center" balign="center"> ResponsiveBotTest </td></tr>
+<tr><td align="center" balign="center"> KACA_Bot </td></tr>
 		</table></td></tr>
 		</table>>, fontname="arial", fontcolor="black", fontsize=10.0];
 }
