@@ -60,6 +60,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     private long logicIterationEscape;
     private final long logic_escape = 30;
     
+    final int veryLongRay = 600;
     final int longRay = 400;
     final int mediumRay = 300;
     final int shortRay = 200;
@@ -81,23 +82,32 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     protected static final String BACK = "Back";
     protected static final String LEFT_BACK = "LeftBack";
     protected static final String RIGHT_BACK = "RightBack";
+    protected static final String BEHIND = "Behind";
+    
     protected static final String LEFT_FRONT = "LeftFront";
     protected static final String RIGHT_FRONT = "RightFront";
     protected static final String LEFT = "Left";
     protected static final String RIGHT = "Right";
-    protected static final String BEHIND = "Behind";
+    
+    protected static final String FRONT = "Front";
+    protected static final String UP_FRONT = "UpFront";
+    protected static final String DOWN_FRONT = "DownFront";
+    
     protected static final String LEFTSHOT = "leftshotRay";
     protected static final String UPSHOT = "upshotRay";
     protected static final String RIGHTSHOT = "rightRay";
-    protected static final String FRONT = "frontRay";
+    protected static final String FRONTSHOT = "frontRay";
     protected static final String UNDERSHOT = "undershotRay";
 
     private boolean sensorFront = false;
     
-    private AutoTraceRay leftshot,undershot,rightshot,upshot,front;
+    private AutoTraceRay leftshot, undershot, rightshot, upshot, frontshot;
     private AutoTraceRay leftBack, back, rightBack, right, left, leftFront, rightFront, behind;
+    private AutoTraceRay front, upFront, downFront;
     
-    boolean leftB, backB, rightB, behindG, leftF, leftG, rightF, rightG;
+    boolean leftB, backB, rightB, behindG;
+    boolean leftF, leftL, rightF, rightR;
+    boolean frontF, upFrontF, downFrontF;
     
     //UT2004ItemType arme=UT2004ItemType.ROCKET_LAUNCHER;
     //UT2004ItemType munition=UT2004ItemType.ROCKET_LAUNCHER_AMMO;
@@ -204,11 +214,15 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         raycasting.createRay(LEFT,  new Vector3d(0, -1, 0), veryShortRay, fastTrace, floorCorrection, traceActor);
         raycasting.createRay(RIGHT, new Vector3d(0, 1, 0), veryShortRay, fastTrace, floorCorrection, traceActor);
         raycasting.createRay(BEHIND, new Vector3d(-1, 0, -2), mediumRay, fastTrace, floorCorrection, traceActor);
-        raycasting.createRay(FRONT,   new Vector3d(1, 0, 0), mediumRay, fastTrace, floorCorrection, traceActor);
+        raycasting.createRay(FRONTSHOT,   new Vector3d(1, 0, 0), mediumRay, fastTrace, floorCorrection, traceActor);
         raycasting.createRay(UNDERSHOT,   new Vector3d(1, 0, -0.03), mediumRay, fastTrace, floorCorrection, traceActor);
         raycasting.createRay(UPSHOT,   new Vector3d(1, 0, 0.03), mediumRay, fastTrace, floorCorrection, traceActor);
         raycasting.createRay(LEFTSHOT,   new Vector3d(1, -0.03, 0), mediumRay, fastTrace, floorCorrection, traceActor);
         raycasting.createRay(RIGHTSHOT,   new Vector3d(1, 0.03, 0), mediumRay, fastTrace, floorCorrection, traceActor);
+        
+        raycasting.createRay(FRONT, new Vector3d(1, 0, 0), veryLongRay, false, floorCorrection, traceActor);
+        raycasting.createRay(UP_FRONT, new Vector3d(1, 0, 0.5), mediumRay, false, floorCorrection, traceActor);
+        raycasting.createRay(DOWN_FRONT, new Vector3d(1, 0, -1), shortRay, fastTrace, floorCorrection, traceActor);
         
          // register listener called when all rays are set up in the UT engine
         raycasting.getAllRaysInitialized().addListener(new FlagListener<Boolean>() {
@@ -226,11 +240,14 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 right = raycasting.getRay(RIGHT);
                 rightFront = raycasting.getRay(RIGHT_FRONT);
                 behind = raycasting.getRay(BEHIND);
-                front = raycasting.getRay(FRONT);
+                frontshot = raycasting.getRay(FRONTSHOT);
                 undershot=raycasting.getRay(UNDERSHOT);
                 upshot=raycasting.getRay(UPSHOT);
                 leftshot=raycasting.getRay(LEFTSHOT);
                 rightshot=raycasting.getRay(RIGHTSHOT);
+                front=raycasting.getRay(FRONT);
+                upFront=raycasting.getRay(UP_FRONT);
+                downFront=raycasting.getRay(DOWN_FRONT);
             }
         });
         
@@ -805,7 +822,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                     }
                     else{ 
                         //    raycasting.createRay(FRONT,   new Vector3d(1, 0, Zdistance), (int)distance, true, false, false);
-                            sensorDown=front.isResult();
+                            sensorDown=frontshot.isResult();
 
                         if (!sensorDown){
                             sayGlobal("FRONT");
@@ -861,7 +878,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                     oldVelocity1=lastPlayer.getVelocity().scale(coeff);
                 }
                 modu=(modu+1) %2;
-		sensorFront=front.isResult();
+		sensorFront=frontshot.isResult();
                 if (!sensorFront){
                     if ((oldVelocity1.getX()-lastPlayer.getVelocity().scale(coeff).getX()>150 || oldVelocity1.scale(coeff).getX()-lastPlayer.getVelocity().scale(coeff).getX()<-150)|| (oldVelocity1.scale(coeff).getY() -lastPlayer.getVelocity().scale(coeff).getY()>150 || oldVelocity1.scale(coeff).getY()-lastPlayer.getVelocity().scale(coeff).getY()<-150)){
                         if (jukeTEMP <=1){
@@ -1082,14 +1099,14 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         
         if (this.seeIncomingProjectile()) {
             
-            rightG = right.isResult();
-            leftG = left.isResult();
+            rightR = right.isResult();
+            leftL = left.isResult();
             
             if (ennemy.getLocation().getDistance(bot.getLocation()) > 1000) {
                 
-                if (!rightG)
+                if (!rightR)
                     move.strafeLeft(150);
-                else if (!leftG)
+                else if (!leftL)
                     move.strafeRight(150);
                 else
                     move.jump();
@@ -1104,7 +1121,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                     
                 } else if (choix > 6 && choix <= 20) {
                     
-                    if (!rightG)
+                    if (!rightR)
                         move.strafeLeft(150);
                     else
                         move.strafeRight(150);
@@ -1112,7 +1129,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                     
                 } else if (choix > 20 && choix <= 23) {
                     
-                    if (!rightG)
+                    if (!rightR)
                         move.dodgeLeft(ennemy, false);
                     else
                         move.dodgeRight(ennemy, false);
@@ -1120,7 +1137,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                     
                 } else if (choix > 23 && choix <= 25) {
                     
-                    if (!rightG)
+                    if (!rightR)
                         move.strafeRight(150);
                     else
                         move.strafeLeft(150);
@@ -1136,6 +1153,25 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
             }
             
         }
-    } 
+    }
+    
+    public void jumpFarAway(Location location){
+        //move.dodgeTo(, true);
+        downFrontF = downFront.isResult();
+        upFrontF = upFront.isResult();
+        frontF = front.isResult();
+        
+        if(!downFrontF){
+            if(!frontF){
+                move.dodgeTo(front.getTo(), true);
+            }
+            else if(!upFrontF){
+                move.dodgeTo(upFront.getTo(), true);
+            }
+            else
+                //cas où il n'y a pas de platefrome en face
+                return;
+        }
+    }
     
 }
