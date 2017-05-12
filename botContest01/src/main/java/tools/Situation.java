@@ -24,12 +24,12 @@ public class Situation {
     
     //booléens décrivant ce que fait le bot
     public boolean basic = true;
-    public boolean engage = true;
+    public boolean engage = true; //renommer en fight
     public boolean hunt = true;
     public boolean rearm = true;
     public boolean healthCollect = true;
     public boolean escape = false;
-    
+    //déplacer injured ici
     
     //information    
     public boolean justEscaped = true;

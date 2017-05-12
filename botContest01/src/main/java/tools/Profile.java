@@ -74,27 +74,35 @@ public class Profile {
         return ((int)Math.round(Math.random() * (nb_choix - 1)) + 1);
     }
     
-    public Action decision (Situation sit) {
+    public Action decision (Situation sit, Action actuelle) {
         
         //si le bot est en mode passif
-        if (sit.basic) {
+        if (actuelle == Action.BASIC_COLLECT) {
             
             //si il voit des ennemis
             if (sit.getNbVisibleEnnemies() > 0) {
                 
                 //condition d'engagement
-                if (((sit.getHealthLevel() > 30) && (sit.getHealthLevel() <= 50) && (sit.getArmourLevel() > 50) && ((this.caution < 20) || (this.trust > 80)))
-                    || ((sit.getHealthLevel() > 30) && (sit.getHealthLevel() <= 50) && (sit.getArmourLevel() < 50) && ((this.caution < 10) || (this.trust > 90)))
-                    || ((sit.getHealthLevel() > 50) && (sit.getHealthLevel() <= 70) && (sit.getArmourLevel() > 50) && ((this.caution < 40) || (this.trust > 60)))
-                    || ((sit.getHealthLevel() > 50) && (sit.getHealthLevel() <= 70) && (sit.getArmourLevel() < 50) && ((this.caution < 30) || (this.trust > 70)))
-                    || (sit.getHealthLevel() > 70) || (this.anger > 90)) {
+                if (sit.getNbVisibleEnnemies() == 1) {
                     
+                    if (((sit.getHealthLevel() > 30) && (sit.getHealthLevel() <= 50) && (sit.getArmourLevel() > 50) && ((this.caution < 20) || (this.trust > 80)))
+                        || ((sit.getHealthLevel() > 30) && (sit.getHealthLevel() <= 50) && (sit.getArmourLevel() < 50) && ((this.caution < 10) || (this.trust > 90)))
+                        || ((sit.getHealthLevel() > 50) && (sit.getHealthLevel() <= 70) && (sit.getArmourLevel() > 50) && ((this.caution < 40) || (this.trust > 60)))
+                        || ((sit.getHealthLevel() > 50) && (sit.getHealthLevel() <= 70) && (sit.getArmourLevel() < 50) && ((this.caution < 30) || (this.trust > 70)))
+                        || (sit.getHealthLevel() > 70) || (this.anger > 90)) {
+
+                        sit.engage = true;
+                        sit.basic = false;
+                        return Action.FIGHT;
+
+                    } else {
+                        sit.escape = true;
+                        return Action.FIGHT;
+                    }
                     
-                    sit.engage = true;
-                    sit.basic = false;
-                    return Action.FIGHT;
-                
-                } else { //sinon fuite
+                }
+                    
+                if (sit.getNbVisibleEnnemies() > 2) { //sinon fuite
                     
                     sit.escape = true;
                     sit.basic = false;
@@ -114,7 +122,7 @@ public class Profile {
             
         }
         
-        if (sit.engage) {
+        if (actuelle == Action.FIGHT) {
             
                 return Action.FIGHT;
             

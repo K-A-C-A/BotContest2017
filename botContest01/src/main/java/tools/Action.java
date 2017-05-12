@@ -25,8 +25,8 @@ public enum Action {
     FIGHT,
     HUNT,
     ESCAPE,
-    PROTECTED_ESCAPE,
     BASIC_COLLECT,
-    HEALTH;
+    HEALTH,
+    INJURED;
     
 }

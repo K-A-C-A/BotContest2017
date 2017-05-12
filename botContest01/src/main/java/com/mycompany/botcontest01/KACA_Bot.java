@@ -295,6 +295,30 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
 
         situation.situationActualisation(info.getArmor(), players.getVisibleEnemies().size(), info.getHealth());
         
+//        actionChoice = profile.decision(situation, actionChoice);
+//        
+//        switch (actionChoice) {
+//            case BASIC_COLLECT:
+//                collectState();
+//                return;
+//            case FIGHT:
+//                initRayToEnnemi();
+//                engageState();
+//                return;
+//            case HUNT:
+//                huntState();
+//                return;
+//            case ESCAPE:
+//                escapeState();
+//                return;
+//            case INJURED:
+//                injuredState();
+//                return;
+//            case HEALTH:
+//                healingState();
+//                return;
+//        }
+        
         if (situation.justEscaped) {
             ++logicIterationNumber;
             if (logicIterationNumber > 8){
@@ -1073,52 +1097,39 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 
                 int choix = (int)Math.round(Math.random() * 39);
                 
-                switch (choix) {
-                    case 0:
-                    case 1:
-                    case 2:
-                    case 3:
-                    case 4:
-                    case 5:
-                    case 6:
-                        return;
-                    case 7:
-                    case 8:
-                    case 9:
-                    case 10:
-                    case 11:
-                    case 12:
-                    case 13:
-                    case 14:
-                    case 15:
-                    case 16:
-                    case 17:
-                    case 18:
-                    case 19:
-                    case 20:
-                        if (!rightG)
-                            move.strafeLeft(150);
-                        else
-                            move.strafeRight(150);
-                        return;
-                    case 21:
-                    case 22:
-                    case 23:
-                        if (!rightG)
-                            move.dodgeLeft(ennemy, false);
-                        else
-                            move.dodgeRight(ennemy, false);
-                        return;
-                    case 24:
-                    case 25:
-                        if (!rightG)
-                            move.strafeRight(150);
-                        else
-                            move.strafeLeft(150);
-                        return;
-                    default:
-                        move.jump();
-                        return;
+                if (choix <= 6) {
+                    
+                    return;
+                    
+                } else if (choix > 6 && choix <= 20) {
+                    
+                    if (!rightG)
+                        move.strafeLeft(150);
+                    else
+                        move.strafeRight(150);
+                    return;
+                    
+                } else if (choix > 20 && choix <= 23) {
+                    
+                    if (!rightG)
+                        move.dodgeLeft(ennemy, false);
+                    else
+                        move.dodgeRight(ennemy, false);
+                    return;
+                    
+                } else if (choix > 23 && choix <= 25) {
+                    
+                    if (!rightG)
+                        move.strafeRight(150);
+                    else
+                        move.strafeLeft(150);
+                    return;
+                    
+                } else {
+                    
+                    move.jump();
+                    return;
+                    
                 }
                 
             }
