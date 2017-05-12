@@ -29,9 +29,9 @@ public class Situation {
     public boolean rearm = true;
     public boolean healthCollect = true;
     public boolean escape = false;
-    //déplacer injured ici
+    public boolean injured = false;
     
-    //information    
+    //information
     public boolean justEscaped = true;
     private int nb_visible_enemies = 0;
     private int health_level = 100;

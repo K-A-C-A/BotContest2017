@@ -82,30 +82,45 @@ public class Profile {
             //si il voit des ennemis
             if (sit.getNbVisibleEnnemies() > 0) {
                 
-                //condition d'engagement
+                //condition d'engagement pour 1 ennemi visible
                 if (sit.getNbVisibleEnnemies() == 1) {
                     
                     if (((sit.getHealthLevel() > 30) && (sit.getHealthLevel() <= 50) && (sit.getArmourLevel() > 50) && ((this.caution < 20) || (this.trust > 80)))
                         || ((sit.getHealthLevel() > 30) && (sit.getHealthLevel() <= 50) && (sit.getArmourLevel() < 50) && ((this.caution < 10) || (this.trust > 90)))
                         || ((sit.getHealthLevel() > 50) && (sit.getHealthLevel() <= 70) && (sit.getArmourLevel() > 50) && ((this.caution < 40) || (this.trust > 60)))
                         || ((sit.getHealthLevel() > 50) && (sit.getHealthLevel() <= 70) && (sit.getArmourLevel() < 50) && ((this.caution < 30) || (this.trust > 70)))
-                        || (sit.getHealthLevel() > 70) || (this.anger > 90)) {
+                        || (sit.getHealthLevel() > 70) || (this.anger > 80)) {
 
-                        sit.engage = true;
-                        sit.basic = false;
                         return Action.FIGHT;
 
                     } else {
                         sit.escape = true;
-                        return Action.FIGHT;
+                        return Action.ESCAPE;
                     }
                     
                 }
+                
+                //condition d'engagement pour 2 ennemi visible
+                if (sit.getNbVisibleEnnemies() == 2) {
                     
-                if (sit.getNbVisibleEnnemies() > 2) { //sinon fuite
+                    if (((sit.getHealthLevel() > 30) && (sit.getHealthLevel() <= 50) && (sit.getArmourLevel() > 50) && ((this.caution < 10) || (this.trust > 90)))
+                        || ((sit.getHealthLevel() > 50) && (sit.getHealthLevel() <= 70) && (sit.getArmourLevel() > 50) && ((this.caution < 30) || (this.trust > 70)))
+                        || ((sit.getHealthLevel() > 50) && (sit.getHealthLevel() <= 70) && (sit.getArmourLevel() < 50) && ((this.caution < 20) || (this.trust > 80)))
+                        || (sit.getHealthLevel() > 70) || (this.anger > 95)) {
+
+                        return Action.FIGHT;
+
+                    } else {
+                        sit.escape = true;
+                        return Action.ESCAPE;
+                    }
+                    
+                }
+                
+                //si 3 ennemis ou plus -> fuite
+                if (sit.getNbVisibleEnnemies() > 2) { 
                     
                     sit.escape = true;
-                    sit.basic = false;
                     return Action.ESCAPE;
                     
                 }     
@@ -115,7 +130,12 @@ public class Profile {
                 
                 return Action.HEALTH;
             
-            //sinon on continue le mode passif ou il n'a pas d'instruction en priorité (recherche d'objet/vie/ennemi)
+            //si on se fait blesser
+            else if (sit.injured) {
+                
+                return Action.INJURED;
+                
+            } //sinon on continue le mode passif ou il n'a pas d'instruction en priorité (recherche d'objet/vie/ennemi)
             else
                 
                 return Action.BASIC_COLLECT;

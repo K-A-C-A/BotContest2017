@@ -65,7 +65,6 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     final int shortRay = 200;
     final int veryShortRay = 100;
     
-    private boolean injured = false;
     private boolean isLowAmmoShieldGun = false;
     private boolean turn = false;
     
@@ -258,7 +257,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         ennemi = null;
         navigation.stopNavigation();
         CollectItems = null;
-        injured = false;
+        situation.injured = false;
         situation.escape = false;
         isLowAmmoShieldGun = false;
         turn = false;
@@ -278,7 +277,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         ennemi = players.getPlayer(event.getInstigator());
         if(ennemi != null)
             move.turnTo(ennemi);
-        injured = true;
+        situation.injured = true;
     }
 
     /**
@@ -1087,12 +1086,14 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
             leftG = left.isResult();
             
             if (ennemy.getLocation().getDistance(bot.getLocation()) > 1000) {
+                
                 if (!rightG)
                     move.strafeLeft(150);
                 else if (!leftG)
                     move.strafeRight(150);
                 else
                     move.jump();
+                
             } else {
                 
                 int choix = (int)Math.round(Math.random() * 39);
