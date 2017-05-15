@@ -759,7 +759,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         coeff =calculCoeff(distance);
         final int rayLength = (int) (ennemi.getLocation().add(ennemi.getVelocity().scale(coeff).asLocation()).getDistance(bot.getLocation()))-150;
         Zdistance=ennemi.getLocation().setZ(ennemi.getLocation().getZ()+20).add(ennemi.getVelocity()).getDistanceZ(bot.getLocation())/distance ;;          
-        raycasting.createRay(FRONT,   new Vector3d(1, 0, Zdistance), rayLength, true, false, false);
+        raycasting.createRay(FRONTSHOT,   new Vector3d(1, 0, Zdistance), rayLength, true, false, false);
         raycasting.createRay(UNDERSHOT,   new Vector3d(1, 0, Zdistance-0.03), rayLength, true, false, false);
         raycasting.createRay(LEFTSHOT,   new Vector3d(1, -0.03, Zdistance), (int)distance, true, false, false);
         raycasting.createRay(UPSHOT,   new Vector3d(1, 0, Zdistance+0.03), (int)distance, true, false, false);
@@ -821,7 +821,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                         jukeTEMP=+1;
                     }
                     else{ 
-                        //    raycasting.createRay(FRONT,   new Vector3d(1, 0, Zdistance), (int)distance, true, false, false);
+                        //    raycasting.createRay(FRONTSHOT,   new Vector3d(1, 0, Zdistance), (int)distance, true, false, false);
                             sensorDown=frontshot.isResult();
 
                         if (!sensorDown){
