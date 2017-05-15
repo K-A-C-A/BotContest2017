@@ -139,7 +139,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         }
         
     }
-    
+    private Location oldLocation;
     private Velocity oldVelocity1;
     private int modu=0;
     protected Player ennemi = null;
@@ -372,6 +372,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
             getAct().act(new StopShooting());
             //remise a zero des informations concernant l'ancien ennemi visible
             oldVelocity1=null;
+            oldLocation=null;
             modu=0;
         }
 
@@ -824,82 +825,94 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
 	}
    
     
-       private void shootRocketLauncher(Player lastPlayer){
+     private void shootRocketLauncher(Player lastPlayer){
          if (lastPlayer!=null){
-            if (lastPlayer.isVisible()){
-                sayGlobal(lastPlayer.getVelocity().toString());
-                if (distance < 500){
-                    move.jump();
-                    shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()-40));
+            //Si l'ennemi est proche on tire directement sur sa position (vers le sol car les rockets explose et font des degats de zones et il est très facile de les esquiver autrement)
+            if (distance < 500){
+                move.jump();
+                shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()-40));
+            }
+            else {
+                //Si l'ennemi est dans les airs on ne tire pas
+                if ((int)lastPlayer.getVelocity().getZ()!=0){
+                    shoot.stopShooting();
+                    // sayGlobal("NO AIR SHOOTIN");
+                    return;
                 }
-                else {
-                    if ((int)lastPlayer.getVelocity().getZ()>0){
-                        shoot.stopShooting();
-                        sayGlobal("NO SHOOTIN");
+                // On met en mémoire l'ancienne vitesse et localisation de l'ennemie
+                if (modu==0){
+                    oldVelocity1=lastPlayer.getVelocity().scale(coeff);
+                    oldLocation = lastPlayer.getLocation();
+                }
+                modu=(modu+1) %2;
+                
+                //Si l'ennemi descend une pente on tire dans la direction de son deplacement , legerement plus bas.
+                if ((int)oldVelocity1.getZ()==0 && (int)lastPlayer.getVelocity().getZ()==0 && oldLocation.getZ()>lastPlayer.getLocation().getZ()){
+                    //sayGlobal("going down STAIRS" );
+                    //sayGlobal(String.valueOf((lastPlayer.getLocation().getZ()-oldLocation.getZ())*3));
+
+                    shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()-(lastPlayer.getLocation().getZ()-oldLocation.getZ())*3).add(lastPlayer.getVelocity().scale(coeff)));
+                    jukeTEMP=+1;
+                    return;
+                }
+                
+                 //Si l'ennemi monte une pente on tire dans la direction de son deplacement , legerement plus haut.
+                if ((int)oldVelocity1.getZ()==0 && (int)lastPlayer.getVelocity().getZ()==0 && oldLocation.getZ()<lastPlayer.getLocation().getZ()){
+                   // sayGlobal(String.valueOf((lastPlayer.getLocation().getZ()-oldLocation.getZ())*3));
+                    shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()+(lastPlayer.getLocation().getZ()-oldLocation.getZ())*3).add(lastPlayer.getVelocity().scale(coeff)));
+                   // sayGlobal("climbing");
+                    return;
+                } 
+                //On regarde le rayon envoyé legerement vers le bas, si il n'est pas interrompu
+                sensorFront=undershot.isResult();
+                if (!sensorFront){
+                    //on regarde si le joueur est en train de zigzagé si oui on tire sur sa localisation 
+                    if ((oldVelocity1.getX()-lastPlayer.getVelocity().scale(coeff).getX()>150 || oldVelocity1.scale(coeff).getX()-lastPlayer.getVelocity().scale(coeff).getX()<-150)|| (oldVelocity1.scale(coeff).getY() -lastPlayer.getVelocity().scale(coeff).getY()>150 || oldVelocity1.scale(coeff).getY()-lastPlayer.getVelocity().scale(coeff).getY()<-150)){
+                        if (jukeTEMP <=1){
+                           // sayGlobal("JUKESHoT");
+                            shoot.shoot(lastPlayer.getLocation().add(lastPlayer.getVelocity().scale(0.1)));
+                        }
+                        jukeTEMP =0;
                         return;
                     }
-                    if (modu==0){
-                        oldVelocity1=lastPlayer.getVelocity().scale(coeff);
-                    }
-                    modu=(modu+1) %2;
-                   // raycasting.createRay(UNDERSHOT,   new Vector3d(1, 0, Zdistance-0.03), (int)distance, true, false, false);
-                    sensorFront=undershot.isResult();
-                    if (!sensorFront){
-                        if ((oldVelocity1.getX()-lastPlayer.getVelocity().scale(coeff).getX()>150 || oldVelocity1.scale(coeff).getX()-lastPlayer.getVelocity().scale(coeff).getX()<-150)|| (oldVelocity1.scale(coeff).getY() -lastPlayer.getVelocity().scale(coeff).getY()>150 || oldVelocity1.scale(coeff).getY()-lastPlayer.getVelocity().scale(coeff).getY()<-150)){
-                            if (jukeTEMP <=1){
-                                sayGlobal("JUKESHoT");
-                                shoot.shoot(lastPlayer.getLocation().add(lastPlayer.getVelocity().scale(0.1)));
-                            }
-                            jukeTEMP =0;
-                            return;
-                        }
-                        shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()-40).add(lastPlayer.getVelocity().scale(coeff)));
-                        jukeTEMP=+1;
-                    }
-                    else{ 
-                        //    raycasting.createRay(FRONTSHOT,   new Vector3d(1, 0, Zdistance), (int)distance, true, false, false);
-                            sensorDown=frontshot.isResult();
-
-                        if (!sensorDown){
-                            sayGlobal("FRONT");
-                            shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()).add(lastPlayer.getVelocity().scale(coeff)));
-                            return;
-                        }
-
-                       // raycasting.createRay(UPSHOT,   new Vector3d(1, 0, Zdistance+0.03), (int)distance, true, false, false);
-
-                        sensorDown=upshot.isResult();
-
-                        if (!sensorDown){
-                            sayGlobal("UP");
-                            shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()+40).add(lastPlayer.getVelocity().scale(coeff)));
-                            return;
-                        }
-
-                       // raycasting.createRay(LEFTSHOT,   new Vector3d(1, -0.03, Zdistance), (int)distance, true, false, false);
-                        sensorDown=leftshot.isResult();
-                        if (!sensorDown){
-                            sayGlobal("LEFT");
-
-                            shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()).setY(lastPlayer.getLocation().getY()-40).add(lastPlayer.getVelocity().scale(coeff)));
-                            return;
-                        }
-
-                       // raycasting.createRay(RIGHTSHOT,   new Vector3d(1, 0.03, Zdistance), (int)distance, true, false, false);
-                        sensorDown=rightshot.isResult();
-                        if (!sensorDown){
-                            sayGlobal("RIGHT");
-                            shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()).setY(lastPlayer.getLocation().getY()+40).add(lastPlayer.getVelocity().scale(coeff)));
-                            return;
-                        }
-
-                        sayGlobal("POSITION");
-
-                        jukeTEMP=+1;
-                        shoot.stopShooting();
-                    }
+                    //sinon on tire dans sa direction
+                    shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()-40).add(lastPlayer.getVelocity().scale(coeff)));
+                    jukeTEMP=+1;
+                    return;
+                }
+                //Sinon on regarde si le rayon envoyé en face n'est pas interrompu 
+                sensorDown=front.isResult();
+                if (!sensorDown){
+                   // sayGlobal("FRONT");
+                    shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()).add(lastPlayer.getVelocity().scale(coeff)));
+                    return;
+                }
+                //Sinon on regarde si le rayon envoyé en haut n'est pas interrompu 
+                sensorDown=upshot.isResult();
+                if (!sensorDown ){
+                    //sayGlobal("UP" );                             
+                    shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()+40).add(lastPlayer.getVelocity().scale(coeff)));
+                    return;
+                }
+                //Sinon on regarde si le rayon envoyé à gauche n'est pas interrompu 
+                sensorDown=leftshot.isResult();
+                if (!sensorDown){
+                    //sayGlobal("LEFT");
+                    shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()).setY(lastPlayer.getLocation().getY()-40).add(lastPlayer.getVelocity().scale(coeff)));
+                    return;
+                }
+                //Sinon on regarde si le rayon envoyé à droite n'est pas interrompu
+                sensorDown=rightshot.isResult();
+                if (!sensorDown){
+                    //sayGlobal("RIGHT");
+                    shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()).setY(lastPlayer.getLocation().getY()+40).add(lastPlayer.getVelocity().scale(coeff)));
+                    return;
+                }
+                //Si tous les rayons sont interrompus on tire sur la position direct de l'ennemi
+               // sayGlobal("POSITION");
+                jukeTEMP=+1;
+                shoot.shoot(lastPlayer.getLocation().add(lastPlayer.getVelocity().scale(0.1)));
                 }     
-            }
         }
     }
  private int jukeTEMP;
