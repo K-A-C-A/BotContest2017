@@ -186,14 +186,14 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         });
 
         // préférence des armes
-        weaponPrefs.addGeneralPref(UT2004ItemType.LIGHTNING_GUN, true);
-        weaponPrefs.addGeneralPref(UT2004ItemType.SHOCK_RIFLE, true);
-        weaponPrefs.addGeneralPref(UT2004ItemType.MINIGUN, false);
-        weaponPrefs.addGeneralPref(UT2004ItemType.FLAK_CANNON, true);
         weaponPrefs.addGeneralPref(UT2004ItemType.ROCKET_LAUNCHER, true);
+        weaponPrefs.addGeneralPref(UT2004ItemType.FLAK_CANNON, true);
+        weaponPrefs.addGeneralPref(UT2004ItemType.SHOCK_RIFLE, true);
         weaponPrefs.addGeneralPref(UT2004ItemType.LINK_GUN, true);
-        weaponPrefs.addGeneralPref(UT2004ItemType.ASSAULT_RIFLE, true);
-        weaponPrefs.addGeneralPref(UT2004ItemType.BIO_RIFLE, true);
+        weaponPrefs.addGeneralPref(UT2004ItemType.MINIGUN, false);
+        weaponPrefs.addGeneralPref(UT2004ItemType.BIO_RIFLE, false);
+        weaponPrefs.addGeneralPref(UT2004ItemType.LIGHTNING_GUN, false);
+        weaponPrefs.addGeneralPref(UT2004ItemType.ASSAULT_RIFLE, false)
     }
 
     @Override
@@ -284,6 +284,8 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         turn = false;
         huntCount = 0;
         escapeCount = 0;
+	timer=0.0;
+        secondary=false;
     }
 
     @EventListener(eventClass = PlayerDamaged.class)
@@ -312,7 +314,9 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
      */
     @Override
     public void logic() {
-
+	 if (ennemi != null){
+            avoidProjectile(ennemi);   
+        }
         situation.situationActualisation(info.getArmor(), players.getVisibleEnemies().size(), info.getHealth());
         
 //        actionChoice = profile.decision(situation, actionChoice);
@@ -363,14 +367,16 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         // 2) ennemi repéré ? 	-> poursuivre (tirer / suivre)
         if (situation.engage && players.canSeeEnemies() && weaponry.hasLoadedWeapon()) {
             initRayToEnnemi();
+	    if (secondary)
+                releaseWeapon();
             engageState();
             return;
         }
         navigation.setFocus(null);
         // 3) en train de tiré    -> arrête de tiré si l'ennemi est perdu de vue
         if (info.isShooting() || info.isSecondaryShooting()) {
-            getAct().act(new StopShooting());
-            //remise a zero des informations concernant l'ancien ennemi visible
+		chargeWeaponOrStopShooting();
+		//remise a zero des informations concernant l'ancien ennemi visible
             oldVelocity1=null;
             oldLocation=null;
             modu=0;
@@ -444,10 +450,8 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 shootBioRifle(ennemi);
             else if (weaponry.getCurrentWeapon().getType() == UT2004ItemType.MINIGUN)
                 shootMiniGun(ennemi);
-            //else if (weaponry.getCurrentWeapon().getType() == UT2004ItemType.ASSAULT_RIFLE)
-                //shootAssault(ennemi);
             else 
-            shoot.shoot(ennemi);
+           	 shoot.shoot(ennemi);
 	    fire=true;
         }
         
@@ -468,13 +472,13 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                     getAct().act(new SetCrouch(true));
                     break;
                 case 1:
-                    getAct().act(new Jump(getRandom().nextBoolean(), 0.3d, 755d));
+                    //getAct().act(new Jump(getRandom().nextBoolean(), 0.3d, 755d));
                     break;
                 case 2:
                     getAct().act(new SetCrouch(false));
                     break;
                 case 3:
-                    getAct().act(new Dodge(ennemi.getLocation().invert(), Location.NONE, false, getRandom().nextBoolean()));
+                   // getAct().act(new Dodge(ennemi.getLocation().invert(), Location.NONE, false, getRandom().nextBoolean()));
                     break;
             }
         }
@@ -1235,5 +1239,40 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 return;
         }
     }
+	
+	 private double timer=0.0;
+    private boolean secondary=false;
+    public void chargeWeaponOrStopShooting(){
+        if (weaponry.getCurrentWeapon().getType()==UT2004ItemType.ROCKET_LAUNCHER || weaponry.getCurrentWeapon().getType()==UT2004ItemType.BIO_RIFLE){
+                shoot.shootSecondary();
+                //sayGlobal("charging");
+                secondary=true;
+                if (weaponry.getCurrentWeapon().getType()==UT2004ItemType.ROCKET_LAUNCHER ){
+                    frontalF=frontal.isResult();
+                    timer=timer+0.1;
+                   // sayGlobal(String.valueOf(timer));
+                    if (timer > 0.7 && frontalF){
+                       // sayGlobal("ILL DIE");
+                        move.turnHorizontal(80);
+                    }
+                    if (timer>0.8){
+                        secondary=false;
+                        timer=0.0;
+                        shoot.stopShooting();
+                    }
+                }
+            }
+            else{
+               getAct().act(new StopShooting());
+               secondary=false;
+            }
+    }
+      public void releaseWeapon(){
+        secondary=false;
+        shoot.shootSecondary(ennemi);
+        shoot.stopShooting();
+        //sayGlobal("second"+String.valueOf(info.isSecondaryShooting()));
+        timer=0.0;
+      }
     
 }
