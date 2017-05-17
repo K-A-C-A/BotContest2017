@@ -97,18 +97,23 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     protected static final String UP_FRONT = "UpFront";
     protected static final String DOWN_FRONT = "DownFront";
     
+	
     protected static final String LEFTSHOT = "leftshotRay";
     protected static final String UPSHOT = "upshotRay";
     protected static final String RIGHTSHOT = "rightRay";
     protected static final String FRONTSHOT = "frontRay";
     protected static final String UNDERSHOT = "undershotRay";
+    protected static final String FRONTAL= "frontalRay";
 
     private boolean sensorFront = false;
     
+    private AutoTraceRay frontal;
+
     private AutoTraceRay leftshot, undershot, rightshot, upshot, frontshot;
     private AutoTraceRay leftBack, back, rightBack, right, left, leftFront, rightFront, behind;
     private AutoTraceRay front, upFront, downFront;
-    
+    boolean frontalF;
+
     boolean leftB, backB, rightB, behindG;
     boolean leftF, leftL, rightF, rightR;
     boolean frontF, upFrontF, downFrontF;
@@ -227,7 +232,8 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         raycasting.createRay(FRONT, new Vector3d(1, 0, 0), veryLongRay, false, floorCorrection, traceActor);
         raycasting.createRay(UP_FRONT, new Vector3d(1, 0, 0.5), mediumRay, false, floorCorrection, traceActor);
         raycasting.createRay(DOWN_FRONT, new Vector3d(1, 0, -1), shortRay, fastTrace, floorCorrection, traceActor);
-        
+        raycasting.createRay(FRONTAL,   new Vector3d(1, 0, 0), shortRay, fastTrace, floorCorrection, traceActor);
+
          // register listener called when all rays are set up in the UT engine
         raycasting.getAllRaysInitialized().addListener(new FlagListener<Boolean>() {
 
@@ -252,6 +258,8 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 front=raycasting.getRay(FRONT);
                 upFront=raycasting.getRay(UP_FRONT);
                 downFront=raycasting.getRay(DOWN_FRONT);
+                frontal=raycasting.getRay(FRONTAL);
+
             }
         });
         
