@@ -50,19 +50,19 @@ import tools.*;
 @AgentScoped
 public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
 
-    private final Profile profile = new Profile();
-    private final Situation situation = new Situation();
-    private final Action actionChoice = Action.BASIC_COLLECT;
+    private Profile profile = new Profile();
+    private Situation situation = new Situation();
+    private Action actionChoice = Action.BASIC_COLLECT;
     
     Item nextItem = null;
     Item proximityItem = null;
     Item savedItem = null;
     
     private long escapeCount = 0;
-    private final int healthNeeded = 60;
+    //private final int healthNeeded = 60;
     
-    private long logicIterationEscape;
-    private final long logic_escape = 30;
+    private final long logic_escape = 5;
+    private int huntCount = 0;
     
     final int veryLongRay = 600;
     final int longRay = 400;
@@ -72,8 +72,6 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     
     private boolean isLowAmmoShieldGun = false;
     private boolean turn = false;
-    
-    private long   logicIterationNumber = 0;
 
     private final double horizontalSpeed = 5;
     private final double lowAmmoShieldGun = 0.6;
@@ -112,11 +110,14 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     private AutoTraceRay leftshot, undershot, rightshot, upshot, frontshot;
     private AutoTraceRay leftBack, back, rightBack, right, left, leftFront, rightFront, behind;
     private AutoTraceRay front, upFront, downFront;
+    
     boolean frontalF;
-
     boolean leftB, backB, rightB, behindG;
     boolean leftF, leftL, rightF, rightR;
     boolean frontF, upFrontF, downFrontF;
+    
+    private double timer=0.0;
+    private boolean secondary=false;
     
     //UT2004ItemType arme=UT2004ItemType.ROCKET_LAUNCHER;
     //UT2004ItemType munition=UT2004ItemType.ROCKET_LAUNCHER_AMMO;
@@ -132,8 +133,11 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
             ennemi = null;
             situation.escape = false;
             situation.incKills();
+            situation.nb_ennemy_engaged -= 1;
             profile.angerModified(-5);
             profile.trustModifiedBy(8);
+            timer = 0.0;
+            secondary = false;
         }
         if (ennemi == null) {
             return;
@@ -322,94 +326,131 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
      */
     @Override
     public void logic() {
+        
 	 if (ennemi != null){
             avoidProjectile(ennemi);   
         }
+         
         situation.situationActualisation(info.getArmor(), players.getVisibleEnemies().size(), info.getHealth());
+        situation.injured = senses.isBeingDamaged();        
+        actionChoice = profile.decision(situation, actionChoice);
         
-//        actionChoice = profile.decision(situation, actionChoice);
-//        
-//        switch (actionChoice) {
-//            case BASIC_COLLECT:
-//                collectState();
-//                return;
-//            case FIGHT:
-//                initRayToEnnemi();
-//                engageState();
-//                return;
-//            case HUNT:
-//                huntState();
-//                return;
-//            case ESCAPE:
-//                escapeState();
-//                return;
-//            case INJURED:
-//                injuredState();
-//                return;
-//            case HEALTH:
-//                healingState();
-//                return;
-//        }
-        
-        if (situation.justEscaped) {
-            ++logicIterationNumber;
-            if (logicIterationNumber > 8){
-                situation.justEscaped = false;
-                logicIterationNumber = 0;
-            }
+        if (actionChoice != Action.ESCAPE) {
+            
+           weaponry.changeWeapon(weaponPrefs.getWeaponPreference().getWeapon());
+           if (actionChoice != Action.FIGHT) {
+               
+               navigation.setFocus(null);
+               if (info.isShooting() || info.isSecondaryShooting() || secondary) {
+                    chargeWeaponOrStopShooting();
+                    //remise a zero des informations concernant l'ancien ennemi visible
+                    oldVelocity1=null;
+                    oldLocation=null;
+                    modu=0;
+                }
+               
+           }
+            
         }
-        situation.escape = info.getHealth() < 40 && !situation.justEscaped;
+        
+
+        switch (actionChoice) {
+            case BASIC_COLLECT:
+                collectState();
+                return;
+            case FIGHT:
+                if (situation.engage) {
+                    initRayToEnnemi();
+                    if (secondary)
+                        releaseWeapon();
+                    engageState();
+                    return;
+                }
+            case HUNT:
+                if (ennemi != null && situation.hunt && weaponry.hasLoadedWeapon()) {
+                    this.huntState();
+                    return;
+                }
+            case ESCAPE:
+                if (ennemi != null && situation.escape && !hasLowAmmoForWeapon(UT2004ItemType.SHIELD_GUN, 0.1)) {
+                    this.escapeState();
+                }
+                else { 
+                    collectState();
+                    actionChoice = Action.BASIC_COLLECT;
+                    situation.escape = false;
+                }
+                return;
+            case INJURED:
+                injuredState();
+                return;
+            case HEALTH:
+                if (situation.healthCollect) {
+                    this.healingState();
+                }
+                return;
+        }
+        
+//        if (situation.justEscaped) {
+//            ++situation.logicIterationNumber;
+//            if (situation.logicIterationNumber > 8){
+//                situation.justEscaped = false;
+//                situation.logicIterationNumber = 0;
+//            }
+//        }
+//        situation.escape = info.getHealth() < 40 && !situation.justEscaped;
         
         // 1) niveau de vie faible
-        if (ennemi != null && situation.escape && !hasLowAmmoForWeapon(UT2004ItemType.SHIELD_GUN, 0.1)) {
-            this.escapeState();
-            return;
-        }
-        else { 
-            situation.escape = false;
-        }
+//        if (ennemi != null && situation.escape && !hasLowAmmoForWeapon(UT2004ItemType.SHIELD_GUN, 0.1)) {
+//            this.escapeState();
+//            return;
+//        }
+//        else { 
+//            situation.escape = false;
+//        }
+//        
+//        //prends une arme de la liste des preferences
+//        weaponry.changeWeapon(weaponPrefs.getWeaponPreference().getWeapon());
+//        
+//        // 2) ennemi repéré ? 	-> poursuivre (tirer / suivre)
+//        if (situation.engage && players.canSeeEnemies() && weaponry.hasLoadedWeapon()) {
+//            initRayToEnnemi();
+//            if (secondary)
+//                releaseWeapon();
+//            engageState();
+//            return;
+//        }
+//        navigation.setFocus(null);
+//        // 3) en train de tiré    -> arrête de tiré si l'ennemi est perdu de vue
+//        if (info.isShooting() || info.isSecondaryShooting()) {
+//            chargeWeaponOrStopShooting();
+//            //remise a zero des informations concernant l'ancien ennemi visible
+//            oldVelocity1=null;
+//            oldLocation=null;
+//            modu=0;
+//        }
+//
+//        // 4) dommages reçu ?	-> tourne sur lui même pour chercher l'ennemi
+//        if (senses.isBeingDamaged()) {
+//            this.injuredState();
+//            return;
+//        }
+//        
+//        // 5) ennemi poursuivis -> va à la dernière position connue de l'ennemi
+//        if (ennemi != null && situation.hunt && weaponry.hasLoadedWeapon()) {
+//            this.huntState();
+//            return;
+//        }
+//        
+//        // 6) blessé ?			-> cherche des soins
+//        if (situation.healthCollect && info.getHealth() < healthNeeded) {
+//            this.healingState();
+//            return;
+//        }
+//
+//        // 7) rien ... ramasses les items
+//        collectState();
         
-        //prends une arme de la liste des preferences
-        weaponry.changeWeapon(weaponPrefs.getWeaponPreference().getWeapon());
-        
-        // 2) ennemi repéré ? 	-> poursuivre (tirer / suivre)
-        if (situation.engage && players.canSeeEnemies() && weaponry.hasLoadedWeapon()) {
-            initRayToEnnemi();
-	    if (secondary)
-                releaseWeapon();
-            engageState();
-            return;
-        }
-        navigation.setFocus(null);
-        // 3) en train de tiré    -> arrête de tiré si l'ennemi est perdu de vue
-        if (info.isShooting() || info.isSecondaryShooting()) {
-		chargeWeaponOrStopShooting();
-		//remise a zero des informations concernant l'ancien ennemi visible
-            oldVelocity1=null;
-            oldLocation=null;
-            modu=0;
-        }
-
-        // 4) dommages reçu ?	-> tourne sur lui même pour chercher l'ennemi
-        if (senses.isBeingDamaged()) {
-            this.injuredState();
-            return;
-        }
-        
-        // 5) ennemi poursuivis -> va à la dernière position connue de l'ennemi
-        if (ennemi != null && situation.hunt && weaponry.hasLoadedWeapon()) {
-            this.huntState();
-            return;
-        }
-        
-        // 6) blessé ?			-> cherche des soins
-        if (situation.healthCollect && info.getHealth() < healthNeeded) {
-            this.healingState();
-            return;
-        }
-
-        // 7) rien ... ramasses les items
-        collectState();
     }
 
     protected boolean goToPlayer = false;
@@ -514,6 +555,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         log.info("Decision: PURSUE");
             ++huntCount;
             if (huntCount > 30) {
+                situation.nb_ennemy_engaged = 0;
                 reset();
             }
             if (ennemi != null) {
@@ -521,10 +563,10 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 navigation.navigate(ennemi);
                 item = null;
             } else {
+                situation.nb_ennemy_engaged = 0;
                 reset();
             }
     }
-    protected int huntCount = 0;
 
     
     ///////////////////
@@ -537,6 +579,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         ++escapeCount;
         if(ennemi == null){
             situation.justEscaped = true;
+            situation.nb_ennemy_engaged = 0;
             reset();
         }
         
@@ -545,12 +588,13 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         if(ennemi.isVisible())
             escapeCount = 0;
 
-        if(escapeCount < 5){  
+        if(escapeCount < logic_escape){  
             goBackward();
             protect();
         }
         else{
             situation.justEscaped = true;
+            situation.nb_ennemy_engaged = 0;
             reset();
         }
     }
@@ -660,6 +704,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     public void botKilled(BotKilled event) {
         reset();
         situation.incDeaths();
+        situation.nb_ennemy_engaged = 0;
         profile.angerModified(8);
         profile.cautionModifiedBy(-5);
         profile.trustModifiedBy(-7);
@@ -1091,25 +1136,6 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     
     private boolean shooting=false;
     
-    private void shootAssault(Player lastPlayer){
-        if (lastPlayer!=null){
-            if (distance < 1000){
-                if (!shooting){
-                    shoot.shootSecondary(ennemi);
-                    shooting=true;
-                }
-                else {
-                    shoot.stopShooting();
-                    shooting=false;
-                }
-
-                //shoot.stopShooting();
-                sayGlobal("SHOT");
-            }
-            else 
-                shoot.shootSecondary(lastPlayer);
-           }
-    }
     private void shootBioRifle(Player lastPlayer){
         if (lastPlayer!=null){
             if (distance > 1000)
@@ -1247,9 +1273,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 return;
         }
     }
-	
-	 private double timer=0.0;
-    private boolean secondary=false;
+
     public void chargeWeaponOrStopShooting(){
         if (weaponry.getCurrentWeapon().getType()==UT2004ItemType.ROCKET_LAUNCHER || weaponry.getCurrentWeapon().getType()==UT2004ItemType.BIO_RIFLE){
                 shoot.shootSecondary();
