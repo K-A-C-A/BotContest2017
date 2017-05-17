@@ -193,7 +193,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         weaponPrefs.addGeneralPref(UT2004ItemType.MINIGUN, false);
         weaponPrefs.addGeneralPref(UT2004ItemType.BIO_RIFLE, false);
         weaponPrefs.addGeneralPref(UT2004ItemType.LIGHTNING_GUN, false);
-        weaponPrefs.addGeneralPref(UT2004ItemType.ASSAULT_RIFLE, false)
+        weaponPrefs.addGeneralPref(UT2004ItemType.ASSAULT_RIFLE, false);
     }
 
     @Override
