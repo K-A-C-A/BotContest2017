@@ -33,6 +33,8 @@ public class Situation {
     
     //information
     public boolean justEscaped = true;
+    public int logicIterationNumber = 0;
+    public int nb_ennemy_engaged = 0;
     private int nb_visible_enemies = 0;
     private int health_level = 100;
     private int armor_level = 0;
@@ -71,15 +73,6 @@ public class Situation {
         this.armor_level = armor;
         this.nb_visible_enemies = enemy;
         this.health_level = health;
-    }
-    
-    public void resetStatut () {
-        basic = true;
-        engage = false;
-        hunt = false;
-        rearm = false;
-        healthCollect = false;
-        escape = false;
     }
     
 }
