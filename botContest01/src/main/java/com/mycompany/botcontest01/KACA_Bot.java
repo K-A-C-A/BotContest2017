@@ -268,7 +268,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         });
         
         raycasting.endRayInitSequence();
-        getAct().act(new Configuration().setDrawTraceLines(true).setAutoTrace(true));
+        getAct().act(new Configuration().setDrawTraceLines(false).setAutoTrace(true));
         
     }
     
@@ -279,7 +279,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     @Override
     public Initialize getInitializeCommand() {
         //setDesiredSkill(int skill) -> varie de 1 à 9 pour choisir le "niveau de visée du bot"
-        return new Initialize().setName("responsiveBot" + (++instanceCount)).setDesiredSkill(5);
+        return new Initialize().setName("K-A-C-A").setDesiredSkill(5);
     }
 
     /**
@@ -549,7 +549,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     /////////////////
     protected void injuredState() {
         //log.info("Decision is: Toucher");
-        bot.getBotName().setInfo("Toucher");
+//        bot.getBotName().setInfo("Toucher");
         if (navigation.isNavigating()) {
             navigation.stopNavigation();
             item = null;
@@ -568,7 +568,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 reset();
             }
             if (ennemi != null) {
-                bot.getBotName().setInfo("Poursuivre");
+//                bot.getBotName().setInfo("Poursuivre");
                 navigation.navigate(ennemi);
                 item = null;
             } else {
@@ -592,7 +592,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
             reset();
         }
         
-        bot.getBotName().setInfo("Escape");
+//        bot.getBotName().setInfo("Escape");
 
         if(ennemi.isVisible())
             escapeCount = 0;
@@ -618,7 +618,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
             log.warning("Pas d'item de vie => Items");
             collectState();
         } else {
-            bot.getBotName().setInfo("Soins");
+//            bot.getBotName().setInfo("Soins");
             navigation.navigate(newItem);
             this.item = newItem;
         }
@@ -639,7 +639,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                         savedItem = this.item;
                         this.item = proximityItem;
                         log.log(Level.INFO, "Collecte: {0}", this.item.getType().getName());
-                        bot.getBotName().setInfo("Item: " + this.item.getType().getName() + "");
+//                        bot.getBotName().setInfo("Item: " + this.item.getType().getName() + "");
                         navigation.navigate(this.item);
                         return;
                     }
@@ -653,7 +653,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
             this.item = savedItem;
             savedItem = null;
             log.log(Level.INFO, "Collecte: {0}", this.item.getType().getName());
-            bot.getBotName().setInfo("Item: " + this.item.getType().getName() + "");
+//            bot.getBotName().setInfo("Item: " + this.item.getType().getName() + "");
             navigation.navigate(this.item);
             return;
         }
@@ -664,7 +664,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
             if(nItem.getDistance(bot.getLocation()) < 500){
                 this.item = nextItem;
                 log.log(Level.INFO, "Collecte: {0}", this.item.getType().getName());
-                bot.getBotName().setInfo("Item: " + this.item.getType().getName() + "");
+//                bot.getBotName().setInfo("Item: " + this.item.getType().getName() + "");
                 navigation.navigate(this.item);
                 return;
             }
@@ -695,12 +695,12 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
             if (navigation.isNavigating()) {
                 return;
             }
-            bot.getBotName().setInfo("Navigation aléatoire");
+//            bot.getBotName().setInfo("Navigation aléatoire");
             navigation.navigate(navPoints.getRandomNavPoint());
         } else {
             this.item = newItem;
             log.log(Level.INFO, "Collecte: {0}", newItem.getType().getName());
-            bot.getBotName().setInfo("Item: " + newItem.getType().getName() + "");
+//            bot.getBotName().setInfo("Item: " + newItem.getType().getName() + "");
             navigation.navigate(newItem);
         }
     }

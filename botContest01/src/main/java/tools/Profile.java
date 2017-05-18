@@ -95,10 +95,8 @@ public class Profile {
                 //condition d'engagement pour 1 ennemi visible
                 if (sit.getNbVisibleEnnemies() == 1) {
                     
-                    if (((sit.getHealthLevel() > 30) && (sit.getHealthLevel() <= 50) && (sit.getArmourLevel() > 50) && ((this.caution < 20) || (this.trust > 80)))
-                        || ((sit.getHealthLevel() > 30) && (sit.getHealthLevel() <= 50) && (sit.getArmourLevel() < 50) && ((this.caution < 10) || (this.trust > 90)))
-                        || ((sit.getHealthLevel() > 50) && (sit.getHealthLevel() <= 70) && (sit.getArmourLevel() > 50) && ((this.caution < 40) || (this.trust > 60)))
-                        || ((sit.getHealthLevel() > 50) && (sit.getHealthLevel() <= 70) && (sit.getArmourLevel() < 50) && ((this.caution < 30) || (this.trust > 70)))
+                    if (((sit.getHealthLevel() > 30) && (sit.getHealthLevel() <= 50) && (sit.getArmourLevel() > 50) && ((this.caution < 40) || (this.trust > 60)))
+                        || ((sit.getHealthLevel() > 30) && (sit.getHealthLevel() <= 50) && (sit.getArmourLevel() < 50) && ((this.caution < 30) || (this.trust > 70)))
                         || (sit.getHealthLevel() > 70) || (this.anger > 80)) {
 
                         return Action.FIGHT;
@@ -225,10 +223,8 @@ public class Profile {
             //condition d'engagement pour 1 ennemi
             if (sit.getNbVisibleEnnemies() == 1) {
                     
-                if (((sit.getHealthLevel() > 30) && (sit.getHealthLevel() <= 50) && (sit.getArmourLevel() > 50) && ((this.caution < 20) || (this.trust > 80)))
-                    || ((sit.getHealthLevel() > 30) && (sit.getHealthLevel() <= 50) && (sit.getArmourLevel() < 50) && ((this.caution < 10) || (this.trust > 90)))
-                    || ((sit.getHealthLevel() > 50) && (sit.getHealthLevel() <= 70) && (sit.getArmourLevel() > 50) && ((this.caution < 40) || (this.trust > 60)))
-                    || ((sit.getHealthLevel() > 50) && (sit.getHealthLevel() <= 70) && (sit.getArmourLevel() < 50) && ((this.caution < 30) || (this.trust > 70)))
+                if (((sit.getHealthLevel() > 30) && (sit.getHealthLevel() <= 50) && (sit.getArmourLevel() > 50) && ((this.caution < 40) || (this.trust > 60)))
+                    || ((sit.getHealthLevel() > 30) && (sit.getHealthLevel() <= 50) && (sit.getArmourLevel() < 50) && ((this.caution < 30) || (this.trust > 70)))
                     || (sit.getHealthLevel() > 70) || (this.anger > 80)) {
 
                     return Action.FIGHT;
