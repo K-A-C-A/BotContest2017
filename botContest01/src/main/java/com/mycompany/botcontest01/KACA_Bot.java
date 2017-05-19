@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.mycompany.botcontest01;
+package com.mycompany.official;
 /**
  *
  * @author Alexandre
@@ -48,7 +48,7 @@ import tools.*;
 
 
 @AgentScoped
-public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
+public class KACA_Bo1 extends UT2004BotModuleController<UT2004Bot> {
 
     private Profile profile = new Profile();
     private Situation situation = new Situation();
@@ -480,62 +480,62 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         huntCount = 0;
         escapeCount = 0;
         
-        // 1) choisis un nouvel ennemi si le précédent est perdu de vue
-        if (ennemi == null || !ennemi.isVisible()) {
-            ennemi = players.getNearestVisiblePlayer(players.getVisibleEnemies().values());
-            if (ennemi == null) {
-                log.info("Pas d'ennemi en vue !");
+        // 1) choisis un nouvel enemy si le précédent est perdu de vue
+        if (enemy == null || !enemy.isVisible()) {
+            enemy = players.getNearestVisiblePlayer(players.getVisibleEnemies().values());
+            if (enemy == null) {
+                log.info("Pas d'enemy en vue !");
                 return;
             }
         }
 
-        // 2) si l'ennemi n'est plus visible -> arrête de tirer
-        if (!ennemi.isVisible()) {
+        // 2) si l'enemy n'est plus visible -> arrête de tirer
+        if (!enemy.isVisible()) {
             if (info.isShooting() || info.isSecondaryShooting()) {
                 getAct().act(new StopShooting());
             }
             goToPlayer = false;
         } else {
-            // 2) tires sur l'ennemi s'il est visible
+            // 2) tires sur l'enemy s'il est visible
             coeff=calculCoeff(distance);
-            navigation.setFocus(ennemi.getLocation().add(ennemi.getVelocity().scale(coeff)));
+            navigation.setFocus(enemy.getLocation().add(enemy.getVelocity().scale(coeff)));
             if (reaction < 0.2){
                 reaction = reaction + 0.1;
                 return;
             }else {
             if (weaponry.getCurrentWeapon().getType() == UT2004ItemType.ROCKET_LAUNCHER) 
-                shootRocketLauncher(ennemi);
+                shootRocketLauncher(enemy);
             else if (weaponry.getCurrentWeapon().getType() == UT2004ItemType.LINK_GUN)
-                shootLinkGun(ennemi);
+                shootLinkGun(enemy);
             else if (weaponry.getCurrentWeapon().getType() == UT2004ItemType.FLAK_CANNON)
-                shootFlakCannon(ennemi);
+                shootFlakCannon(enemy);
             else if (weaponry.getCurrentWeapon().getType() == UT2004ItemType.SHOCK_RIFLE)
-                shootShockRifle(ennemi);
+                shootShockRifle(enemy);
             else if (weaponry.getCurrentWeapon().getType() == UT2004ItemType.BIO_RIFLE)
-                shootBioRifle(ennemi);
+                shootBioRifle(enemy);
             else if (weaponry.getCurrentWeapon().getType() == UT2004ItemType.MINIGUN)
-                shootMiniGun(ennemi);
+                shootMiniGun(enemy);
             else 
-           	 shoot.shoot(ennemi);
+           	 shoot.shoot(enemy);
 	    fire=true;
             }
         }
         
-        // 3) Si l'ennemis n'est pas visible ou trop loin -> vas vers lui
+        // 3) Si l'enemys n'est pas visible ou trop loin -> vas vers lui
         int distSuffisante = Math.round(random.nextFloat() * 800) + 200;
-        if (!ennemi.isVisible() || !fire || distSuffisante < distance) {
+        if (!enemy.isVisible() || !fire || distSuffisante < distance) {
             if (!goToPlayer) {
-                navigation.navigate(ennemi);
+                navigation.navigate(enemy);
                 goToPlayer = true;
             }
         } else {
             goToPlayer = false;
             navigation.stopNavigation();
-            //move.strafeAlong(ennemi.getLocation(), items.getNearestItem().getLocation(), ennemi);
+            //move.strafeAlong(enemy.getLocation(), items.getNearestItem().getLocation(), enemy);
            if (!hasAvoided){
                 int choixBot = getRandom().nextInt(20);
                 if (choixBot < 6 && distance > 400)
-                    switchStrafe(ennemi, Location.sub(ennemi.getLocation(),bot.getLocation()), 6);
+                    switchStrafe(enemy, Location.sub(enemy.getLocation(),bot.getLocation()), 6);
                 else if (choixBot >= 6 && choixBot < 10)
                     move.strafeLeft(150);
                 else if (choixBot >= 10 && choixBot < 14 )
@@ -549,13 +549,13 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                     getAct().act(new Jump(getRandom().nextBoolean(), 0.3d, 755d));
                 }
                 else if ( choixBot == 16){
-                    move.moveTo(ennemi);
+                    move.moveTo(enemy);
                     getAct().act(new Jump(getRandom().nextBoolean(), 0.3d, 755d));
                 }
                 else if (choixBot >= 17 && choixBot < 19)
-                    move.dodgeLeft( ennemi, getRandom().nextBoolean());
+                    move.dodgeLeft( enemy, getRandom().nextBoolean());
                 else
-                    move.dodgeRight( ennemi, getRandom().nextBoolean());
+                    move.dodgeRight( enemy, getRandom().nextBoolean());
             }
         }
         hasAvoided=false;
@@ -815,7 +815,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         else{
             //direction de l'enemy
             Location vector = Location.sub(bot.getLocation(), enemy.getLocation());
-            switchStrafe(enemy, vector);
+            switchStrafe(enemy, vector,12);
         }
         
     }
@@ -944,7 +944,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                     // sayGlobal("NO AIR SHOOTIN");
                     return;
                 }
-                // On met en mémoire l'ancienne vitesse et localisation de l'ennemie
+                // On met en mémoire l'ancienne vitesse et localisation de l'enemye
                 if (modu==0){
                     oldVelocity1=lastPlayer.getVelocity().scale(coeff);
                     oldLocation = lastPlayer.getLocation();
@@ -1033,7 +1033,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 // sayGlobal("NO AIR SHOOTIN");
                 return;
             }
-            // On met en mémoire l'ancienne vitesse et localisation de l'ennemie
+            // On met en mémoire l'ancienne vitesse et localisation de l'enemye
             if (modu==0){
                 oldVelocity1=lastPlayer.getVelocity().scale(coeff);
                 oldLocation = lastPlayer.getLocation();
@@ -1190,7 +1190,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         }
     }
     
-    public void switchStrafe(Player player, Location vector , int coeff ){
+       public void switchStrafe(Player player, Location vector , int coeff ){
         
         int choix = (int)Math.round(Math.random() * 2);
         switch (choix){
@@ -1213,6 +1213,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         move.strafeTo(l, player);
         
     }
+    
     public void switchStrafe(Item item, Location vector){
         
         if (!item.isVisible()) {
