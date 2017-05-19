@@ -986,7 +986,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                     return;
                 }
                 //Sinon on regarde si le rayon envoyé en face n'est pas interrompu 
-                sensorDown=frontShot.isResult();
+                sensorDown=frontshot.isResult();
                 if (!sensorDown){
                    // sayGlobal("FRONT");
                     shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()).add(lastPlayer.getVelocity().scale(coeff)));
