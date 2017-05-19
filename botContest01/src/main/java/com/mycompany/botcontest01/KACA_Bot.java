@@ -123,7 +123,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     private boolean shooting = false;
     private int tempo = 0;
     private boolean bulleShot = false;
-    private hasAvoided = false;
+    private boolean hasAvoided = false;
     private int previousChoiceBackward = 0;
     protected double reaction = 0.0;
    
@@ -1190,15 +1190,15 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         }
     }
     
-    public void switchStrafe(Player player, Location vector){
+    public void switchStrafe(Player player, Location vector , int coeff ){
         
         int choix = (int)Math.round(Math.random() * 2);
         switch (choix){
             case 1 :
-                angular = Math.PI/12;
+                angular = Math.PI/coeff;
                 break;
             case 2 :
-                angular = -Math.PI/12;
+                angular = -Math.PI/coeff;
                 break;
             default :
                 angular = 0;
@@ -1213,7 +1213,6 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         move.strafeTo(l, player);
         
     }
-    
     public void switchStrafe(Item item, Location vector){
         
         if (!item.isVisible()) {
