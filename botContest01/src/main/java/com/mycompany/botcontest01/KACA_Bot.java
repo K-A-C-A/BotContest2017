@@ -115,19 +115,17 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     boolean leftF, leftL, rightF, rightR;
     boolean frontF, upFrontF, downFrontF;
     
-    private double timer=0.0;
-    private boolean secondary=false;
+    private double timer = 0.0;
+    private boolean secondary = false;
     
     private int jukeTEMP;
     private boolean sensorDown;
-    private boolean shooting=false;
+    private boolean shooting = false;
     private int tempo = 0;
-    private boolean bulleShot=false;
-    
+    private boolean bulleShot = false;
+    private hasAvoided = false;
     private int previousChoiceBackward = 0;
-    
-    //UT2004ItemType arme=UT2004ItemType.ROCKET_LAUNCHER;
-    //UT2004ItemType munition=UT2004ItemType.ROCKET_LAUNCHER_AMMO;
+    protected double reaction = 0.0;
    
     /**
      * {@link JoueurTuer} compteur pour le nombre de tuer.
@@ -307,6 +305,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         secondary=false;
         previousChoiceBackward = 0;
         situation.stuck = false;
+	hasAvoided = false;
     }
 
     @EventListener(eventClass = PlayerDamaged.class)
@@ -336,9 +335,9 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     @Override
     public void logic() {
         
-	 if (enemy != null){
-            avoidProjectile(enemy);   
-        }
+	
+        hasAvoided=avoidProjectile();	
+        
          
         situation.situationActualisation(info.getArmor(), players.getVisibleEnemies().size(), info.getHealth());
         situation.injured = senses.isBeingDamaged();        
@@ -473,7 +472,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
 
     protected boolean goToPlayer = false;
 
-    protected void engageState() {
+   protected void engageState() {
         //log.info("Decision: Engager");
         //config.setName("Hunter [Engager]");
 
@@ -481,76 +480,85 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         huntCount = 0;
         escapeCount = 0;
         
-        // 1) choisis un nouvel enemy si le précédent est perdu de vue
-        if (enemy == null || !enemy.isVisible()) {
-            enemy = players.getNearestVisiblePlayer(players.getVisibleEnemies().values());
-            if (enemy == null) {
-//                log.info("Pas d'ennemi en vue !");
+        // 1) choisis un nouvel ennemi si le précédent est perdu de vue
+        if (ennemi == null || !ennemi.isVisible()) {
+            ennemi = players.getNearestVisiblePlayer(players.getVisibleEnemies().values());
+            if (ennemi == null) {
+                log.info("Pas d'ennemi en vue !");
                 return;
             }
         }
 
-        // 2) si l'enemy n'est plus visible -> arrête de tirer
-        if (!enemy.isVisible()) {
+        // 2) si l'ennemi n'est plus visible -> arrête de tirer
+        if (!ennemi.isVisible()) {
             if (info.isShooting() || info.isSecondaryShooting()) {
                 getAct().act(new StopShooting());
             }
             goToPlayer = false;
         } else {
-            // 2) tires sur l'enemy s'il est visible
+            // 2) tires sur l'ennemi s'il est visible
             coeff=calculCoeff(distance);
-            navigation.setFocus(enemy.getLocation().add(enemy.getVelocity().scale(coeff)));
-            /*
-            if (shoot.shoot(weaponPrefs, enemy) != null) {
-//                log.info("Tirer sur l'enemy!!!");
-                fire = true;
-            }*/
-            
+            navigation.setFocus(ennemi.getLocation().add(ennemi.getVelocity().scale(coeff)));
+            if (reaction < 0.2){
+                reaction = reaction + 0.1;
+                return;
+            }else {
             if (weaponry.getCurrentWeapon().getType() == UT2004ItemType.ROCKET_LAUNCHER) 
-                shootRocketLauncher(enemy);
+                shootRocketLauncher(ennemi);
             else if (weaponry.getCurrentWeapon().getType() == UT2004ItemType.LINK_GUN)
-                shootLinkGun(enemy);
+                shootLinkGun(ennemi);
             else if (weaponry.getCurrentWeapon().getType() == UT2004ItemType.FLAK_CANNON)
-                shootFlakCannon(enemy);
+                shootFlakCannon(ennemi);
             else if (weaponry.getCurrentWeapon().getType() == UT2004ItemType.SHOCK_RIFLE)
-                shootShockRifle(enemy);
+                shootShockRifle(ennemi);
             else if (weaponry.getCurrentWeapon().getType() == UT2004ItemType.BIO_RIFLE)
-                shootBioRifle(enemy);
+                shootBioRifle(ennemi);
             else if (weaponry.getCurrentWeapon().getType() == UT2004ItemType.MINIGUN)
-                shootMiniGun(enemy);
+                shootMiniGun(ennemi);
             else 
-           	 shoot.shoot(enemy);
+           	 shoot.shoot(ennemi);
 	    fire=true;
+            }
         }
         
         // 3) Si l'ennemis n'est pas visible ou trop loin -> vas vers lui
         int distSuffisante = Math.round(random.nextFloat() * 800) + 200;
-        if (!enemy.isVisible() || !fire || distSuffisante < distance) {
+        if (!ennemi.isVisible() || !fire || distSuffisante < distance) {
             if (!goToPlayer) {
-                navigation.navigate(enemy);
+                navigation.navigate(ennemi);
                 goToPlayer = true;
             }
         } else {
             goToPlayer = false;
             navigation.stopNavigation();
-
-            int choixBot = getRandom().nextInt(4);
-            switch (choixBot) {
-                case 0:
-                    getAct().act(new SetCrouch(true));
-                    break;
-                case 1:
-                    //getAct().act(new Jump(getRandom().nextBoolean(), 0.3d, 755d));
-                    break;
-                case 2:
-                    getAct().act(new SetCrouch(false));
-                    break;
-                case 3:
-                   // getAct().act(new Dodge(enemy.getLocation().invert(), Location.NONE, false, getRandom().nextBoolean()));
-                    break;
+            //move.strafeAlong(ennemi.getLocation(), items.getNearestItem().getLocation(), ennemi);
+           if (!hasAvoided){
+                int choixBot = getRandom().nextInt(20);
+                if (choixBot < 6 && distance > 400)
+                    switchStrafe(ennemi, Location.sub(ennemi.getLocation(),bot.getLocation()), 6);
+                else if (choixBot >= 6 && choixBot < 10)
+                    move.strafeLeft(150);
+                else if (choixBot >= 10 && choixBot < 14 )
+                    move.strafeRight(150);
+                else if ( choixBot == 14){
+                    move.strafeLeft(20);
+                    getAct().act(new Jump(getRandom().nextBoolean(), 0.3d, 755d));
+                }
+                else if ( choixBot == 15){
+                    move.strafeRight(20);
+                    getAct().act(new Jump(getRandom().nextBoolean(), 0.3d, 755d));
+                }
+                else if ( choixBot == 16){
+                    move.moveTo(ennemi);
+                    getAct().act(new Jump(getRandom().nextBoolean(), 0.3d, 755d));
+                }
+                else if (choixBot >= 17 && choixBot < 19)
+                    move.dodgeLeft( ennemi, getRandom().nextBoolean());
+                else
+                    move.dodgeRight( ennemi, getRandom().nextBoolean());
             }
         }
-
+        hasAvoided=false;
         item = null;
     }
 
@@ -913,8 +921,9 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
 //    	log.info(msg);
     }
       private boolean seeIncomingProjectile() {
+         
     	for (IncomingProjectile proj : world.getAll(IncomingProjectile.class).values()) {
-    		if (proj.isVisible()) return true;
+    		if (proj.isVisible() && proj.getOrigin().getDistance(bot.getLocation())>400 && proj.getLocation().getDistance(bot.getLocation())<1000) return true;
 
     	}
 		return false;
@@ -977,7 +986,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                     return;
                 }
                 //Sinon on regarde si le rayon envoyé en face n'est pas interrompu 
-                sensorDown=front.isResult();
+                sensorDown=frontShot.isResult();
                 if (!sensorDown){
                    // sayGlobal("FRONT");
                     shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()).add(lastPlayer.getVelocity().scale(coeff)));
@@ -1234,54 +1243,47 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         
     }
     
-    public void avoidProjectile (Player ennemy) {
+   
+     public boolean avoidProjectile () {
         
         if (this.seeIncomingProjectile()) {
-            
+            IncomingProjectile proj = pickProjectile();
             rightR = right.isResult();
             leftL = left.isResult();
             
-            if (ennemy.getLocation().getDistance(bot.getLocation()) > 1000) {
-                
-                if (!rightR)
-                    move.strafeLeft(150);
-                else if (!leftL)
-                    move.strafeRight(150);
-                else
-                    move.jump();
-                
-            } else {
-                
-                int choix = (int)Math.round(Math.random() * 39);
+            if (proj.getLocation().getDistance(bot.getLocation()) < 1000 && proj.getLocation().getDistance(bot.getLocation()) > 400) {   
+                int choix = getRandom().nextInt(20);
                 
                     
-                if (choix > 6 && choix <= 20) {
+                if (choix < 12) {
                     
                     if (!rightR)
                         move.strafeLeft(150);
                     else
                         move.strafeRight(150);
-                } else if (choix > 20 && choix <= 23) {
+                    
+                } else if (choix >= 12 && choix < 17) {
                     
                     if (!rightR)
-                        move.dodgeLeft(ennemy, false);
+                        move.dodgeLeft(proj, false);
                     else
-                        move.dodgeRight(ennemy, false);
+                        move.dodgeRight(proj, false);
                     
-                } else if (choix > 23 && choix <= 25) {
+                } else if (choix == 17 ) {
                     
                     if (!rightR)
                         move.strafeRight(150);
                     else
                         move.strafeLeft(150);
                     
-                } else if (choix > 25) {
-                    move.jump();                    
+                } else if (choix > 17 ) {
+                    getAct().act(new Jump(getRandom().nextBoolean(), 0.3d, 755d));
                 }
                 
             }
-            
+          return true;  
         }
+        return false;
     }
     
     public void jumpFarAway(Location location){
