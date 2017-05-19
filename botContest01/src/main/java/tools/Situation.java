@@ -33,6 +33,7 @@ public class Situation {
     
     //information
     public boolean justEscaped = true;
+    public boolean stuck = false;
     public int logicIterationNumber = 0;
     public int nb_ennemy_engaged = 0;
     private int nb_visible_enemies = 0;

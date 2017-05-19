@@ -74,6 +74,21 @@ public class Profile {
         return ((int)Math.round(Math.random() * (nb_choix - 1)) + 1);
     }
     
+    private boolean returnBool(Situation sit, int minHealthLevel, int maxHealthLevel, boolean armourInf, int armourLevel, int cautionLevel, int trustLevel){
+        boolean result;
+        
+        if (armourInf)
+            result = ((sit.getHealthLevel() > minHealthLevel) && (sit.getHealthLevel() <= maxHealthLevel)
+                    && (sit.getArmourLevel() < armourLevel) && ((this.caution < cautionLevel) || (this.trust > trustLevel)));
+        else
+            result = ((sit.getHealthLevel() > minHealthLevel) && (sit.getHealthLevel() <= maxHealthLevel)
+                    && (sit.getArmourLevel() >= armourLevel) && ((this.caution < cautionLevel) || (this.trust > trustLevel)));
+        
+        
+        return result;
+                        
+    }
+    
     public Action decision (Situation sit, Action previous) {
         
         
@@ -95,8 +110,8 @@ public class Profile {
                 //condition d'engagement pour 1 ennemi visible
                 if (sit.getNbVisibleEnnemies() == 1) {
                     
-                    if (((sit.getHealthLevel() > 30) && (sit.getHealthLevel() <= 50) && (sit.getArmourLevel() > 50) && ((this.caution < 40) || (this.trust > 60)))
-                        || ((sit.getHealthLevel() > 30) && (sit.getHealthLevel() <= 50) && (sit.getArmourLevel() < 50) && ((this.caution < 30) || (this.trust > 70)))
+                    if (this.returnBool(sit,30,50,false,50,40,60)
+                        || this.returnBool(sit,30,50,true,50,30,70)
                         || (sit.getHealthLevel() > 70) || (this.anger > 80)) {
 
                         return Action.FIGHT;
@@ -111,9 +126,9 @@ public class Profile {
                 //condition d'engagement pour 2 ennemi visible
                 if (sit.getNbVisibleEnnemies() == 2) {
                     
-                    if (((sit.getHealthLevel() > 30) && (sit.getHealthLevel() <= 50) && (sit.getArmourLevel() > 50) && ((this.caution < 10) || (this.trust > 90)))
-                        || ((sit.getHealthLevel() > 50) && (sit.getHealthLevel() <= 70) && (sit.getArmourLevel() > 50) && ((this.caution < 30) || (this.trust > 70)))
-                        || ((sit.getHealthLevel() > 50) && (sit.getHealthLevel() <= 70) && (sit.getArmourLevel() < 50) && ((this.caution < 20) || (this.trust > 80)))
+                    if (this.returnBool(sit,30,50,false,50,10,90)
+                        || this.returnBool(sit,50,70,false,50,30,70)
+                        || this.returnBool(sit,50,70,true,50,20,80)
                         || (sit.getHealthLevel() > 70) || (this.anger > 95)) {
 
                         return Action.FIGHT;
@@ -152,6 +167,10 @@ public class Profile {
         
         if (previous == Action.ESCAPE) {
             
+            if (sit.stuck)
+                
+                return Action.FIGHT;
+            
             if (sit.justEscaped)
                 
                 return Action.BASIC_COLLECT;
@@ -176,9 +195,9 @@ public class Profile {
                 
                 else if (sit.getNbVisibleEnnemies() == 2) {
                     
-                    if (((sit.getHealthLevel() > 30) && (sit.getHealthLevel() <= 50) && (sit.getArmourLevel() > 50) && ((this.caution < 10) || (this.trust > 90)))
-                        || ((sit.getHealthLevel() > 50) && (sit.getHealthLevel() <= 70) && (sit.getArmourLevel() > 50) && ((this.caution < 30) || (this.trust > 70)))
-                        || ((sit.getHealthLevel() > 50) && (sit.getHealthLevel() <= 70) && (sit.getArmourLevel() < 50) && ((this.caution < 20) || (this.trust > 80)))
+                    if (this.returnBool(sit,30,50,false,50,10,90)
+                        || this.returnBool(sit,50,70,false,50,30,70)
+                        || this.returnBool(sit,50,70,true,50,20,80)
                         || (sit.getHealthLevel() > 70) || (this.anger > 95)) {
 
                         return Action.FIGHT;
@@ -199,6 +218,10 @@ public class Profile {
         }
         
         if (previous == Action.FIGHT) {
+            
+            if (sit.stuck)
+                
+                return Action.FIGHT;
             
             if (sit.nb_ennemy_engaged < sit.getNbVisibleEnnemies())
                 
@@ -223,8 +246,8 @@ public class Profile {
             //condition d'engagement pour 1 ennemi
             if (sit.getNbVisibleEnnemies() == 1) {
                     
-                if (((sit.getHealthLevel() > 30) && (sit.getHealthLevel() <= 50) && (sit.getArmourLevel() > 50) && ((this.caution < 40) || (this.trust > 60)))
-                    || ((sit.getHealthLevel() > 30) && (sit.getHealthLevel() <= 50) && (sit.getArmourLevel() < 50) && ((this.caution < 30) || (this.trust > 70)))
+                if (this.returnBool(sit,30,50,false,50,40,60)
+                    || this.returnBool(sit,30,50,true,50,30,70)
                     || (sit.getHealthLevel() > 70) || (this.anger > 80)) {
 
                     return Action.FIGHT;
@@ -239,9 +262,9 @@ public class Profile {
             //condition d'engagement pour 2 ennemi visible
             if (sit.getNbVisibleEnnemies() == 2) {
 
-                if (((sit.getHealthLevel() > 30) && (sit.getHealthLevel() <= 50) && (sit.getArmourLevel() > 50) && ((this.caution < 10) || (this.trust > 90)))
-                    || ((sit.getHealthLevel() > 50) && (sit.getHealthLevel() <= 70) && (sit.getArmourLevel() > 50) && ((this.caution < 30) || (this.trust > 70)))
-                    || ((sit.getHealthLevel() > 50) && (sit.getHealthLevel() <= 70) && (sit.getArmourLevel() < 50) && ((this.caution < 20) || (this.trust > 80)))
+                if (this.returnBool(sit,30,50,false,50,10,90)
+                    || this.returnBool(sit,50,70,false,50,30,70)
+                    || this.returnBool(sit,50,70,true,50,20,80)
                     || (sit.getHealthLevel() > 70) || (this.anger > 95)) {
 
                     return Action.FIGHT;

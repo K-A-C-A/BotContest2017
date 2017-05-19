@@ -68,7 +68,6 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     final int longRay = 400;
     final int mediumRay = 300;
     final int shortRay = 200;
-    final int veryShortRay = 100;
     
     private boolean isLowAmmoShieldGun = false;
     private boolean turn = false;
@@ -118,6 +117,14 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     
     private double timer=0.0;
     private boolean secondary=false;
+    
+    private int jukeTEMP;
+    private boolean sensorDown;
+    private boolean shooting=false;
+    private int tempo = 0;
+    private boolean bulleShot=false;
+    
+    private int previousChoiceBackward = 0;
     
     //UT2004ItemType arme=UT2004ItemType.ROCKET_LAUNCHER;
     //UT2004ItemType munition=UT2004ItemType.ROCKET_LAUNCHER_AMMO;
@@ -224,8 +231,8 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         raycasting.createRay(RIGHT_BACK, new Vector3d(-1, 1, 0), mediumRay, fastTrace, floorCorrection, traceActor);
         raycasting.createRay(LEFT_FRONT,  new Vector3d(1, -1, 0), mediumRay, fastTrace, floorCorrection, traceActor);
         raycasting.createRay(RIGHT_FRONT, new Vector3d(1, 1, 0), mediumRay, fastTrace, floorCorrection, traceActor);
-        raycasting.createRay(LEFT,  new Vector3d(0, -1, 0), veryShortRay, fastTrace, floorCorrection, traceActor);
-        raycasting.createRay(RIGHT, new Vector3d(0, 1, 0), veryShortRay, fastTrace, floorCorrection, traceActor);
+        raycasting.createRay(LEFT,  new Vector3d(0, -1, 0), shortRay, fastTrace, floorCorrection, traceActor);
+        raycasting.createRay(RIGHT, new Vector3d(0, 1, 0), shortRay, fastTrace, floorCorrection, traceActor);
         raycasting.createRay(BEHIND, new Vector3d(-1, 0, -2), mediumRay, fastTrace, floorCorrection, traceActor);
         raycasting.createRay(FRONTSHOT,   new Vector3d(1, 0, 0), mediumRay, fastTrace, floorCorrection, traceActor);
         raycasting.createRay(UNDERSHOT,   new Vector3d(1, 0, -0.03), mediumRay, fastTrace, floorCorrection, traceActor);
@@ -268,7 +275,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         });
         
         raycasting.endRayInitSequence();
-        getAct().act(new Configuration().setDrawTraceLines(false).setAutoTrace(true));
+        getAct().act(new Configuration().setDrawTraceLines(true).setAutoTrace(true));
         
     }
     
@@ -298,6 +305,8 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         escapeCount = 0;
 	timer=0.0;
         secondary=false;
+        previousChoiceBackward = 0;
+        situation.stuck = false;
     }
 
     @EventListener(eventClass = PlayerDamaged.class)
@@ -359,7 +368,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 collectState();
                 return;
             case FIGHT:
-                if (situation.engage) {
+                if (situation.engage && weaponry.hasLoadedWeapon()) {
                     initRayToEnnemi();
                     if (secondary)
                         releaseWeapon();
@@ -737,6 +746,8 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
             backB = back.isResult();
             rightB = rightBack.isResult();
             behindG = behind.isResult();
+            leftL = left.isResult();
+            rightR = right.isResult();
             
             //Si il y a du vide derrière lui
             if(!behindG){
@@ -762,6 +773,24 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 }//sinon impasse
                 else{
                     //cas ou les 3 rayons sont rouges
+                    if (rightR && leftL)
+                        situation.stuck = true;
+                    else if (rightR)
+                        rotation = rotateLeftBack;
+                    else if (leftL)
+                        rotation = rotateRightBack;
+                    else {
+                        switch (previousChoiceBackward) {
+                            case 0:
+                                previousChoiceBackward = (int)Math.round(Math.random() * 1) + 1;
+                                break;
+                            case 1:
+                                rotation = rotateLeftBack;
+                                break;
+                            case 2:
+                                rotation = rotateRightBack;
+                        }
+                    }
                 }
             }
             
@@ -981,8 +1010,6 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 }     
         }
     }
- private int jukeTEMP;
- private boolean sensorDown;
 
     private void shootLinkGun(Player lastPlayer){
     if (lastPlayer!=null){
@@ -1099,8 +1126,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         }    
       }
       
-      private int tempo = 0;
-      private boolean bulleShot=false;
+      
         private void shootShockRifle(Player lastPlayer){
 
             if (lastPlayer!=null){
@@ -1141,9 +1167,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
             else 
                 shoot.shootSecondary(lastPlayer);
         }
-      }
-    
-    private boolean shooting=false;
+    }
     
     private void shootBioRifle(Player lastPlayer){
         if (lastPlayer!=null){
