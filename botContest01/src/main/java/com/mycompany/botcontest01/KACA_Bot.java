@@ -143,6 +143,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
             profile.trustModifiedBy(8);
             timer = 0.0;
             secondary = false;
+            reaction=0.0;
         }
         if (enemy == null) {
             return;
@@ -284,7 +285,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     @Override
     public Initialize getInitializeCommand() {
         //setDesiredSkill(int skill) -> varie de 1 à 9 pour choisir le "niveau de visée du bot"
-        return new Initialize().setName("K-A-C-A").setDesiredSkill(5);
+        return new Initialize().setName("K-A-C-A").setDesiredSkill(4);
     }
 
     /**
@@ -292,6 +293,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
      */
     protected void reset() {
         item = null;
+        savedItem = null;
         enemy = null;
         navigation.stopNavigation();
         CollectItems = null;
@@ -306,6 +308,9 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         previousChoiceBackward = 0;
         situation.stuck = false;
 	hasAvoided = false;
+        oldLocation=null;
+        oldVelocity1=null;
+        reaction=0.0;
     }
 
     @EventListener(eventClass = PlayerDamaged.class)
@@ -332,10 +337,27 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
      *
      * @throws cz.cuni.amis.pogamut.base.exceptions.PogamutException
      */
+    UT2004ItemType arme=UT2004ItemType.SHOCK_RIFLE;
+    UT2004ItemType munition=UT2004ItemType.SHOCK_RIFLE_AMMO;
     @Override
     public void logic() {
         
-	
+//        if (!weaponry.hasWeapon(arme)) {
+//    		log.info("Getting WEAPON");
+//    		getAct().act(new AddInventory().setType(arme.getName()));
+//    		return; 
+//    	}
+//    	
+//    	if (!weaponry.hasLoadedWeapon(arme)) {
+//    		log.info("Getting AMMO");
+//    		getAct().act(new AddInventory().setType(munition.getName()));
+//    		return;    	
+//    	}
+//    	
+//    	if (weaponry.getCurrentWeapon().getType() != arme) {
+//    		weaponry.changeWeapon(arme);
+//    		return;
+//    	}
         hasAvoided=avoidProjectile();	
         
          
@@ -345,7 +367,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         
         if (actionChoice != Action.ESCAPE) {
             
-           weaponry.changeWeapon(weaponPrefs.getWeaponPreference().getWeapon());
+          // weaponry.changeWeapon(weaponPrefs.getWeaponPreference().getWeapon());
            if (actionChoice != Action.FIGHT) {
                
                navigation.setFocus(null);
@@ -355,6 +377,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                     oldVelocity1=null;
                     oldLocation=null;
                     modu=0;
+                    reaction=0.0;
                 }
                
            }
@@ -368,9 +391,6 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 return;
             case FIGHT:
                 if (situation.engage && weaponry.hasLoadedWeapon()) {
-                    initRayToEnnemi();
-                    if (secondary)
-                        releaseWeapon();
                     engageState();
                     return;
                 }
@@ -387,9 +407,6 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                     situation.escape = false;
                     situation.justEscaped = true;
                     if (situation.engage && players.canSeeEnemies() && weaponry.hasLoadedWeapon()) {
-                        initRayToEnnemi();
-                        if (secondary)
-                            releaseWeapon();
                         actionChoice = Action.FIGHT;
                         engageState();
                     }
@@ -488,7 +505,11 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 return;
             }
         }
-
+        initRayToEnnemi();
+        if (secondary){
+            releaseWeapon();
+            secondary= false;
+        }
         // 2) si l'enemy n'est plus visible -> arrête de tirer
         if (!enemy.isVisible()) {
             if (info.isShooting() || info.isSecondaryShooting()) {
@@ -533,26 +554,26 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
             navigation.stopNavigation();
             //move.strafeAlong(enemy.getLocation(), items.getNearestItem().getLocation(), enemy);
            if (!hasAvoided){
-                int choixBot = getRandom().nextInt(20);
-                if (choixBot < 6 && distance > 400)
+                int choixBot = getRandom().nextInt(50);
+                if (choixBot < 20 && distance > 400)
                     switchStrafe(enemy, Location.sub(enemy.getLocation(),bot.getLocation()), 6);
-                else if (choixBot >= 6 && choixBot < 10)
+                else if (choixBot >= 20 && choixBot < 30)
                     move.strafeLeft(150);
-                else if (choixBot >= 10 && choixBot < 14 )
+                else if (choixBot >= 30 && choixBot < 40 )
                     move.strafeRight(150);
-                else if ( choixBot == 14){
+                else if ( choixBot >= 40 && choixBot < 43){
                     move.strafeLeft(20);
                     getAct().act(new Jump(getRandom().nextBoolean(), 0.3d, 755d));
                 }
-                else if ( choixBot == 15){
+               else if ( choixBot >= 43 && choixBot < 46){
                     move.strafeRight(20);
                     getAct().act(new Jump(getRandom().nextBoolean(), 0.3d, 755d));
                 }
-                else if ( choixBot == 16){
+                else if ( choixBot >= 46 && choixBot < 49){
                     move.moveTo(enemy);
                     getAct().act(new Jump(getRandom().nextBoolean(), 0.3d, 755d));
                 }
-                else if (choixBot >= 17 && choixBot < 19)
+                else if (choixBot >= 49)
                     move.dodgeLeft( enemy, getRandom().nextBoolean());
                 else
                     move.dodgeRight( enemy, getRandom().nextBoolean());
@@ -656,7 +677,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                     if (proximityItem.getType().getCategory() != UT2004ItemType.Category.AMMO && proximityItem.getType().getCategory() != ItemType.Category.HEALTH) {
                         savedItem = this.item;
                         this.item = proximityItem;
-                        log.log(Level.INFO, "Collecte: {0}", this.item.getType().getName());
+                       // log.log(Level.INFO, "Collecte: {0}", this.item.getType().getName());
 //                        bot.getBotName().setInfo("Item: " + this.item.getType().getName() + "");
                         navigation.navigate(this.item);
                         return;
@@ -670,7 +691,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         if (savedItem != null){
             this.item = savedItem;
             savedItem = null;
-            log.log(Level.INFO, "Collecte: {0}", this.item.getType().getName());
+            //log.log(Level.INFO, "Collecte: {0}", this.item.getType().getName());
 //            bot.getBotName().setInfo("Item: " + this.item.getType().getName() + "");
             navigation.navigate(this.item);
             return;
@@ -681,7 +702,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
             Location nItem = nextItem.getLocation();
             if(nItem.getDistance(bot.getLocation()) < 500){
                 this.item = nextItem;
-                log.log(Level.INFO, "Collecte: {0}", this.item.getType().getName());
+              //  log.log(Level.INFO, "Collecte: {0}", this.item.getType().getName());
 //                bot.getBotName().setInfo("Item: " + this.item.getType().getName() + "");
                 navigation.navigate(this.item);
                 return;
@@ -715,9 +736,10 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
             }
 //            bot.getBotName().setInfo("Navigation aléatoire");
             navigation.navigate(navPoints.getRandomNavPoint());
+            
         } else {
             this.item = newItem;
-            log.log(Level.INFO, "Collecte: {0}", newItem.getType().getName());
+          //  log.log(Level.INFO, "Collecte: {0}", newItem.getType().getName());
 //            bot.getBotName().setInfo("Item: " + newItem.getType().getName() + "");
             navigation.navigate(newItem);
         }
@@ -895,7 +917,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     return coeff1;
 }
     private void initRayToEnnemi(){
-        enemy=players.getNearestEnemy(5.0);
+        if (enemy != null){
         distance=enemy.getLocation().getDistance(bot.getLocation());
         coeff =calculCoeff(distance);
         final int rayLength = (int) (enemy.getLocation().add(enemy.getVelocity().scale(coeff).asLocation()).getDistance(bot.getLocation()))-150;
@@ -905,6 +927,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         raycasting.createRay(LEFTSHOT,   new Vector3d(1, -0.03, Zdistance), (int)distance, true, false, false);
         raycasting.createRay(UPSHOT,   new Vector3d(1, 0, Zdistance+0.03), (int)distance, true, false, false);
         raycasting.createRay(RIGHTSHOT,   new Vector3d(1, 0.03, Zdistance), (int)distance, true, false, false);
+        }
     }
     private IncomingProjectile pickProjectile() {
 		return DistanceUtils.getNearest(world.getAll(IncomingProjectile.class).values(), info.getLocation());
@@ -1114,65 +1137,65 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
           // ROCKET 1350  glue 2000 link gun 1500(fake 1000)flak 2500   
     //secondary machine gun 933.33 secondary flak 1200 secondary shock rifle 1150  secondary glue 2000 secondary ROCKET 1350
 
-      private void shootFlakCannon(Player lastPlayer){
+    private void shootFlakCannon(Player lastPlayer){
         if (lastPlayer!=null){           
-
-            if (distance < 500){
-                shoot.shoot(lastPlayer);
-                return;
-            }
-            
-
-            if (Zdistance<-0.25 && distance <800){
+            //sayGlobal(String.valueOf(Zdistance*distance));
+            if (Zdistance*distance<-250 && distance <800 && (int)lastPlayer.getVelocity().getZ()==0){
                 move.jump();
                 shoot.shootSecondary(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()-150).add(lastPlayer.getVelocity().scale(coeff)));
-            
+                return;
+            }
+            if (distance < 500){
+                shoot.shoot(lastPlayer);
             }
             else {
                 coeff = distance / 2500;
                 shoot.shoot(lastPlayer.getLocation().add(lastPlayer.getVelocity().scale(coeff)));
-            // shoot.shoot(lastPlayer);
             }
         }    
-      }
-      
-      
-        private void shootShockRifle(Player lastPlayer){
+    }
+    
+    private boolean seeShotProjectile() {
+         
+    	for (IncomingProjectile proj : world.getAll(IncomingProjectile.class).values()) {
+    		if (proj.isVisible() && proj.getOrigin().getDistance(bot.getLocation())<400) return true;
 
-            if (lastPlayer!=null){
+    	}
+		return false;
+	}
+      
+    private void shootShockRifle(Player lastPlayer){
 
-//                log.info("Shooting  ");
-                if (bulleShot && seeIncomingProjectile()){
-                    shoot.stopShooting();
-                    IncomingProjectile proj = pickProjectile();
-                    if (distance <info.getLocation().getDistance(proj.getLocation())+300 ){             
+        if (lastPlayer!=null){
+            if (bulleShot && seeShotProjectile()){
+                shoot.stopShooting();
+                IncomingProjectile proj = pickProjectile();
+                if (distance <info.getLocation().getDistance(proj.getLocation())+100 ){             
 //                        log.info("in range?: SHOOT");
-                        shoot.shoot(proj);   
-                        bulleShot=false;
-                        return;
-                    }
+                    shoot.shoot(proj);   
+                    bulleShot=false;
+                    return;
                 }
-            if (distance < 1000){
-                shoot.shootSecondary(lastPlayer.getLocation().add(lastPlayer.getVelocity().scale(coeff)));
+            }
+            if (distance < 800){
+                shoot.shootSecondary(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()+30).add(lastPlayer.getVelocity().scale(coeff)));
                 bulleShot=true;
-
             }
             else {
                 if (tempo==4){
                     shoot.shoot(lastPlayer.getLocation());
-                    sayGlobal("TIR"+String.valueOf(tempo));
-                    tempo=(tempo+1) %10;
+                    tempo=(tempo+1) %5;
                     return;
-                            }
+                }
                 tempo=(tempo+1) %5;
                 shoot.stopShooting();
             }
-          }
-      }
+        }
+    }
         
     private void shootMiniGun(Player lastPlayer){
         if (lastPlayer!=null){
-            if (distance < 1000)
+            if (distance < 1500)
                 shoot.shoot(lastPlayer);
             else 
                 shoot.shootSecondary(lastPlayer);
@@ -1183,10 +1206,23 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
  
     private void shootBioRifle(Player lastPlayer){
         if (lastPlayer!=null){
-            if (distance > 1000)
-                shoot.shootSecondary();
-            else 
-                shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()-(bot.getLocation().getDistanceZ(lastPlayer.getLocation()))/10).add(lastPlayer.getVelocity().scale(coeff)));
+            if (distance > 1000){
+               
+                if (info.isSecondaryShooting())
+                    return;
+                else 
+                    shoot.shootSecondary();
+            }
+            int skip = getRandom().nextInt(5);
+            if((int)lastPlayer.getVelocity().getZ()==0){
+                if (skip==0){
+                   shoot.stopShooting();
+                   sayGlobal("SKIPPED");
+                   return;
+                }
+                shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()).add(lastPlayer.getVelocity().scale(coeff)));  
+                sayGlobal("Shoot");
+            }
         }
     }
     
@@ -1306,7 +1342,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     }
 
     public void chargeWeaponOrStopShooting(){
-        if (weaponry.getCurrentWeapon().getType()==UT2004ItemType.ROCKET_LAUNCHER || weaponry.getCurrentWeapon().getType()==UT2004ItemType.BIO_RIFLE){
+        if (weaponry.getCurrentWeapon().getType()==UT2004ItemType.ROCKET_LAUNCHER || weaponry.getCurrentWeapon().getType()==UT2004ItemType.BIO_RIFLE||weaponry.getCurrentWeapon().getType()==UT2004ItemType.ASSAULT_RIFLE){
                 shoot.shootSecondary();
                 //sayGlobal("charging");
                 secondary=true;
@@ -1329,11 +1365,17 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                getAct().act(new StopShooting());
                secondary=false;
             }
-    }
+        }
       public void releaseWeapon(){
         secondary=false;
-        shoot.shootSecondary(enemy);
-        shoot.stopShooting();
+        if (weaponry.getCurrentWeapon().getType()==UT2004ItemType.ASSAULT_RIFLE){
+                    shoot.shootSecondary(enemy.getLocation().setZ(enemy.getLocation().getZ()-150));
+                    shoot.stopShooting();
+        }
+        else{
+            shoot.shootSecondary(enemy);
+            shoot.stopShooting();
+        }
         //sayGlobal("second"+String.valueOf(info.isSecondaryShooting()));
         timer=0.0;
       }
