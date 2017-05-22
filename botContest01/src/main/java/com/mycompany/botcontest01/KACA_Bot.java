@@ -337,27 +337,11 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
      *
      * @throws cz.cuni.amis.pogamut.base.exceptions.PogamutException
      */
-    UT2004ItemType arme=UT2004ItemType.SHOCK_RIFLE;
-    UT2004ItemType munition=UT2004ItemType.SHOCK_RIFLE_AMMO;
+ 
     @Override
     public void logic() {
         
-//        if (!weaponry.hasWeapon(arme)) {
-//    		log.info("Getting WEAPON");
-//    		getAct().act(new AddInventory().setType(arme.getName()));
-//    		return; 
-//    	}
-//    	
-//    	if (!weaponry.hasLoadedWeapon(arme)) {
-//    		log.info("Getting AMMO");
-//    		getAct().act(new AddInventory().setType(munition.getName()));
-//    		return;    	
-//    	}
-//    	
-//    	if (weaponry.getCurrentWeapon().getType() != arme) {
-//    		weaponry.changeWeapon(arme);
-//    		return;
-//    	}
+
         hasAvoided=avoidProjectile();	
         
          
@@ -367,7 +351,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         
         if (actionChoice != Action.ESCAPE) {
             
-          // weaponry.changeWeapon(weaponPrefs.getWeaponPreference().getWeapon());
+           weaponry.changeWeapon(weaponPrefs.getWeaponPreference().getWeapon());
            if (actionChoice != Action.FIGHT) {
                
                navigation.setFocus(null);
