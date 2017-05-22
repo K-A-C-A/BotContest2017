@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.mycompany.official;
+package com.mycompany.botcontest01;
 /**
  *
  * @author Alexandre
@@ -48,7 +48,7 @@ import tools.*;
 
 
 @AgentScoped
-public class KACA_Bo1 extends UT2004BotModuleController<UT2004Bot> {
+public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
 
     private Profile profile = new Profile();
     private Situation situation = new Situation();
