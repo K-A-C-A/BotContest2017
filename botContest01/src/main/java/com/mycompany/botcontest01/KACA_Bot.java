@@ -72,7 +72,6 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     private boolean isLowAmmoShieldGun = false;
     private boolean turn = false;
 
-    private final double horizontalSpeed = 5;
     private final double lowAmmoShieldGun = 0.6;
     private double angular;
     private final double rotateLeftBack = Math.PI/3;
@@ -120,7 +119,6 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     
     private int jukeTEMP;
     private boolean sensorDown;
-    private boolean shooting = false;
     private int tempo = 0;
     private boolean bulleShot = false;
     private boolean hasAvoided = false;
@@ -241,7 +239,6 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     	// By uncommenting line below, you will see all messages that goes trough GB2004 parser (GB2004 -> BOT communication)
     	//bot.getLogger().getCategory("Parser").setLevel(Level.ALL);
         shoot.setChangeWeaponCooldown(3000);
-        config.setRotationHorizontalSpeed(config.getRotationSpeed().yaw * horizontalSpeed);
         //itemsToIgnore = new TabooSet<Item>(bot);
         
         boolean fastTrace = true;        
@@ -364,7 +361,8 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
      *
      * @throws cz.cuni.amis.pogamut.base.exceptions.PogamutException
      */
-
+    UT2004ItemType arme=UT2004ItemType.SHOCK_RIFLE;
+    UT2004ItemType munition=UT2004ItemType.SHOCK_RIFLE_AMMO;
     @Override
     public void logic() {
         hasAvoided=avoidProjectile();	
@@ -405,7 +403,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 collectState();
                 return;
             case FIGHT:
-                if (situation.engage  && weaponry.getCurrentPrimaryAmmo() != 0) {
+                if (situation.engage  && weaponry.getCurrentPrimaryAmmo() != 0 ) {
                     engageState();
                 } else {
                     actionChoice = Action.ESCAPE;
@@ -658,7 +656,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         
 //        bot.getBotName().setInfo("Escape");
 
-        if(enemy.isVisible())
+        if(enemy!=null)
             escapeCount = 0;
 
         if(escapeCount < logic_escape){  
