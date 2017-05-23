@@ -951,16 +951,11 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
 		return DistanceUtils.getNearest(world.getAll(IncomingProjectile.class).values(), info.getLocation());
                 /*if (seeIncomingProjectile()){
                                     proj =pickProjectile();
-                                    sayGlobal(String.valueOf(proj.getSpeed()));
+                                    //sayGlobal(String.valueOf(proj.getSpeed()));
                                 }*/
 	}
         
-      private void sayGlobal(String msg) {
-    	// Simple way to send msg into the UT2004 chat
-    	body.getCommunication().sendGlobalTextMessage(msg);
-    	// And user log as well
-//    	log.info(msg);
-    }
+      
       private boolean seeIncomingProjectile() {
          
     	for (IncomingProjectile proj : world.getAll(IncomingProjectile.class).values()) {
@@ -982,7 +977,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 //Si l'enemy est dans les airs on ne tire pas
                 if ((int)lastPlayer.getVelocity().getZ()!=0){
                     shoot.stopShooting();
-                    // sayGlobal("NO AIR SHOOTIN");
+                    // //sayGlobal("NO AIR SHOOTIN");
                     return;
                 }
                 // On met en mémoire l'ancienne vitesse et localisation de l'enemye
@@ -996,8 +991,8 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                      return;
                 //Si l'enemy descend une pente on tire dans la direction de son deplacement , legerement plus bas.
                 if ((int)oldVelocity.getZ()==0 && (int)lastPlayer.getVelocity().getZ()==0 && oldLocation.getZ()>lastPlayer.getLocation().getZ()){
-                    //sayGlobal("going down STAIRS" );
-                    //sayGlobal(String.valueOf((lastPlayer.getLocation().getZ()-oldLocation.getZ())*3));
+                    ////sayGlobal("going down STAIRS" );
+                    ////sayGlobal(String.valueOf((lastPlayer.getLocation().getZ()-oldLocation.getZ())*3));
 
                     shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()-(lastPlayer.getLocation().getZ()-oldLocation.getZ())*3).add(lastPlayer.getVelocity().scale(coeff)));
                     jukeTEMP=+1;
@@ -1006,9 +1001,9 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 
                  //Si l'enemy monte une pente on tire dans la direction de son deplacement , legerement plus haut.
                 if ((int)oldVelocity.getZ()==0 && (int)lastPlayer.getVelocity().getZ()==0 && oldLocation.getZ()<lastPlayer.getLocation().getZ()){
-                   // sayGlobal(String.valueOf((lastPlayer.getLocation().getZ()-oldLocation.getZ())*3));
+                   // //sayGlobal(String.valueOf((lastPlayer.getLocation().getZ()-oldLocation.getZ())*3));
                     shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()+(lastPlayer.getLocation().getZ()-oldLocation.getZ())*3).add(lastPlayer.getVelocity().scale(coeff)));
-                   // sayGlobal("climbing");
+                   // //sayGlobal("climbing");
                     return;
                 } 
                 //On regarde le rayon envoyé legerement vers le bas, si il n'est pas interrompu
@@ -1017,7 +1012,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                     //on regarde si le joueur est en train de zigzagé si oui on tire sur sa localisation 
                     if ((oldVelocity.getX()-lastPlayer.getVelocity().scale(coeff).getX()>150 || oldVelocity.scale(coeff).getX()-lastPlayer.getVelocity().scale(coeff).getX()<-150)|| (oldVelocity.scale(coeff).getY() -lastPlayer.getVelocity().scale(coeff).getY()>150 || oldVelocity.scale(coeff).getY()-lastPlayer.getVelocity().scale(coeff).getY()<-150)){
                         if (jukeTEMP <=1){
-                           // sayGlobal("JUKESHoT");
+                           // //sayGlobal("JUKESHoT");
                             shoot.shoot(lastPlayer.getLocation().add(lastPlayer.getVelocity().scale(0.1)));
                         }
                         jukeTEMP =0;
@@ -1031,33 +1026,33 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 //Sinon on regarde si le rayon envoyé en face n'est pas interrompu 
                 sensorDown=frontshot.isResult();
                 if (!sensorDown){
-                   // sayGlobal("FRONT");
+                   // //sayGlobal("FRONT");
                     shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()).add(lastPlayer.getVelocity().scale(coeff)));
                     return;
                 }
                 //Sinon on regarde si le rayon envoyé en haut n'est pas interrompu 
                 sensorDown=upshot.isResult();
                 if (!sensorDown ){
-                    //sayGlobal("UP" );                             
+                    ////sayGlobal("UP" );                             
                     shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()+40).add(lastPlayer.getVelocity().scale(coeff)));
                     return;
                 }
                 //Sinon on regarde si le rayon envoyé à gauche n'est pas interrompu 
                 sensorDown=leftshot.isResult();
                 if (!sensorDown){
-                    //sayGlobal("LEFT");
+                    ////sayGlobal("LEFT");
                     shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()).setY(lastPlayer.getLocation().getY()-40).add(lastPlayer.getVelocity().scale(coeff)));
                     return;
                 }
                 //Sinon on regarde si le rayon envoyé à droite n'est pas interrompu
                 sensorDown=rightshot.isResult();
                 if (!sensorDown){
-                    //sayGlobal("RIGHT");
+                    ////sayGlobal("RIGHT");
                     shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()).setY(lastPlayer.getLocation().getY()+40).add(lastPlayer.getVelocity().scale(coeff)));
                     return;
                 }
                 //Si tous les rayons sont interrompus on tire sur la position direct de l'enemy
-               // sayGlobal("POSITION");
+               // //sayGlobal("POSITION");
                 jukeTEMP=+1;
                 shoot.shoot(lastPlayer.getLocation().add(lastPlayer.getVelocity().scale(0.1)));
                 }     
@@ -1073,7 +1068,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
             //Si l'enemy est dans les airs on ne tire pas
             if ((int)lastPlayer.getVelocity().getZ()!=0){
                 shoot.stopShooting();
-                // sayGlobal("NO AIR SHOOTIN");
+                // //sayGlobal("NO AIR SHOOTIN");
                 return;
             }
             // On met en mémoire l'ancienne vitesse et localisation de l'enemye
@@ -1086,8 +1081,8 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 return;
             //Si l'enemy descend une pente on tire dans la direction de son deplacement , legerement plus bas.
             if ((int)oldVelocity.getZ()==0 && (int)lastPlayer.getVelocity().getZ()==0 && oldLocation.getZ()>lastPlayer.getLocation().getZ()){
-                //sayGlobal("going down STAIRS" );
-                //sayGlobal(String.valueOf((lastPlayer.getLocation().getZ()-oldLocation.getZ())*3));
+                ////sayGlobal("going down STAIRS" );
+                ////sayGlobal(String.valueOf((lastPlayer.getLocation().getZ()-oldLocation.getZ())*3));
 
                 shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()-(lastPlayer.getLocation().getZ()-oldLocation.getZ())*3).add(lastPlayer.getVelocity().scale(coeff)));
                 jukeTEMP=+1;
@@ -1096,9 +1091,9 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
 
              //Si l'enemy monte une pente on tire dans la direction de son deplacement , legerement plus haut.
             if ((int)oldVelocity.getZ()==0 && (int)lastPlayer.getVelocity().getZ()==0 && oldLocation.getZ()<lastPlayer.getLocation().getZ()){
-               // sayGlobal(String.valueOf((lastPlayer.getLocation().getZ()-oldLocation.getZ())*3));
+               // //sayGlobal(String.valueOf((lastPlayer.getLocation().getZ()-oldLocation.getZ())*3));
                 shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()+(lastPlayer.getLocation().getZ()-oldLocation.getZ())*3).add(lastPlayer.getVelocity().scale(coeff)));
-                sayGlobal("climbing");
+                //sayGlobal("climbing");
                 return;
             } 
             //On regarde le rayon envoyé legerement vers le bas, si il n'est pas interrompu
@@ -1107,7 +1102,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 //on regarde si le joueur est en train de zigzagé si oui on tire sur sa localisation 
                 if ((oldVelocity.getX()-lastPlayer.getVelocity().scale(coeff).getX()>150 || oldVelocity.scale(coeff).getX()-lastPlayer.getVelocity().scale(coeff).getX()<-150)|| (oldVelocity.scale(coeff).getY() -lastPlayer.getVelocity().scale(coeff).getY()>150 || oldVelocity.scale(coeff).getY()-lastPlayer.getVelocity().scale(coeff).getY()<-150)){
                     if (jukeTEMP <=1){
-                       // sayGlobal("JUKESHoT");
+                       // //sayGlobal("JUKESHoT");
                         shoot.shoot(lastPlayer.getLocation().add(lastPlayer.getVelocity().scale(0.1)));
                     }
                     jukeTEMP =0;
@@ -1121,33 +1116,33 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
             //Sinon on regarde si le rayon envoyé en face n'est pas interrompu 
             sensorDown=undershot.isResult();
             if (!sensorDown){
-               // sayGlobal("FRONT");
+               // //sayGlobal("FRONT");
                 shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()-40).add(lastPlayer.getVelocity().scale(coeff)));
                 return;
             }
             //Sinon on regarde si le rayon envoyé en haut n'est pas interrompu 
             sensorDown=upshot.isResult();
             if (!sensorDown ){
-                //sayGlobal("UP" );                             
+                ////sayGlobal("UP" );                             
                 shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()+40).add(lastPlayer.getVelocity().scale(coeff)));
                 return;
             }
             //Sinon on regarde si le rayon envoyé à gauche n'est pas interrompu 
             sensorDown=leftshot.isResult();
             if (!sensorDown){
-                //sayGlobal("LEFT");
+                ////sayGlobal("LEFT");
                 shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()).setY(lastPlayer.getLocation().getY()-40).add(lastPlayer.getVelocity().scale(coeff)));
                 return;
             }
             //Sinon on regarde si le rayon envoyé à droite n'est pas interrompu
             sensorDown=rightshot.isResult();
             if (!sensorDown){
-                //sayGlobal("RIGHT");
+                ////sayGlobal("RIGHT");
                 shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()).setY(lastPlayer.getLocation().getY()+40).add(lastPlayer.getVelocity().scale(coeff)));
                 return;
             }
             //Si tous les rayons sont interrompus on tire sur la position direct de l'enemy
-           // sayGlobal("POSITION");
+           // //sayGlobal("POSITION");
             jukeTEMP=+1;
             shoot.shoot(lastPlayer.getLocation().add(lastPlayer.getVelocity().scale(0.1)));
             }   
@@ -1160,7 +1155,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
 
     private void shootFlakCannon(Player lastPlayer){
         if (lastPlayer!=null){           
-            //sayGlobal(String.valueOf(Zdistance*distance));
+            ////sayGlobal(String.valueOf(Zdistance*distance));
             if (Zdistance*distance<-250 && distance <800 && (int)lastPlayer.getVelocity().getZ()==0){
                 move.jump();
                 shoot.shootSecondary(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()-150).add(lastPlayer.getVelocity().scale(coeff)));
@@ -1238,11 +1233,11 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
             if((int)lastPlayer.getVelocity().getZ()==0){
                 if (skip==0){
                    shoot.stopShooting();
-                   sayGlobal("SKIPPED");
+                   //sayGlobal("SKIPPED");
                    return;
                 }
                 shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()).add(lastPlayer.getVelocity().scale(coeff)));  
-                sayGlobal("Shoot");
+                //sayGlobal("Shoot");
             }
         }
     }
@@ -1365,14 +1360,14 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     public void chargeWeaponOrStopShooting(){
         if (weaponry.getCurrentWeapon().getType()==UT2004ItemType.ROCKET_LAUNCHER || weaponry.getCurrentWeapon().getType()==UT2004ItemType.BIO_RIFLE||weaponry.getCurrentWeapon().getType()==UT2004ItemType.ASSAULT_RIFLE){
                 shoot.shootSecondary();
-                //sayGlobal("charging");
+                ////sayGlobal("charging");
                 secondary=true;
                 if (weaponry.getCurrentWeapon().getType()==UT2004ItemType.ROCKET_LAUNCHER ){
                     frontalF=frontal.isResult();
                     timer=timer+0.1;
-                   // sayGlobal(String.valueOf(timer));
+                   // //sayGlobal(String.valueOf(timer));
                     if (timer > 0.7 && frontalF){
-                       // sayGlobal("ILL DIE");
+                       // //sayGlobal("ILL DIE");
                         move.turnHorizontal(80);
                     }
                     if (timer>0.8){
@@ -1397,7 +1392,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
             shoot.shootSecondary(enemy);
             shoot.stopShooting();
         }
-        //sayGlobal("second"+String.valueOf(info.isSecondaryShooting()));
+        ////sayGlobal("second"+String.valueOf(info.isSecondaryShooting()));
         timer=0.0;
       }
     
