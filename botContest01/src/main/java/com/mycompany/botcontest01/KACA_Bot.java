@@ -364,12 +364,9 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
      *
      * @throws cz.cuni.amis.pogamut.base.exceptions.PogamutException
      */
-    UT2004ItemType arme=UT2004ItemType.SHOCK_RIFLE;
-    UT2004ItemType munition=UT2004ItemType.SHOCK_RIFLE_AMMO;
-    boolean hasChangedweapon =false;
+
     @Override
     public void logic() {
-        
         hasAvoided=avoidProjectile();	
         
         if (enemy==null)
@@ -408,12 +405,16 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 collectState();
                 return;
             case FIGHT:
-                if (situation.engage && weaponry.hasLoadedWeapon()) {
+                if (situation.engage  && weaponry.getCurrentPrimaryAmmo() != 0) {
                     engageState();
-                    return;
+                } else {
+                    actionChoice = Action.ESCAPE;
+                    escapeState();
                 }
+                
+                return;
             case HUNT:
-                if (enemy != null && situation.hunt && weaponry.hasLoadedWeapon()) {
+                if (enemy != null && situation.hunt && weaponry.getCurrentPrimaryAmmo() != 0) {
                     this.huntState();
                     return;
                 }
@@ -424,7 +425,8 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 else {
                     situation.escape = false;
                     situation.justEscaped = true;
-                    if (situation.engage && players.canSeeEnemies() && weaponry.hasLoadedWeapon()) {
+                    
+                    if (situation.engage && players.canSeeEnemies() && weaponry.getCurrentPrimaryAmmo() != 0) {
                         actionChoice = Action.FIGHT;
                         engageState();
                     }
@@ -542,6 +544,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 reaction = reaction + 0.1;
                 return;
             }else {
+           
             if (weaponry.getCurrentWeapon().getType() == UT2004ItemType.ROCKET_LAUNCHER) 
                 shootRocketLauncher(enemy);
             else if (weaponry.getCurrentWeapon().getType() == UT2004ItemType.LINK_GUN)
@@ -554,7 +557,11 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 shootBioRifle(enemy);
             else if (weaponry.getCurrentWeapon().getType() == UT2004ItemType.MINIGUN)
                 shootMiniGun(enemy);
-            else 
+            else if (!weaponry.hasPrimaryLoadedWeapon(UT2004ItemType.ASSAULT_RIFLE) && (weaponry.getCurrentWeapon().getType() == UT2004ItemType.ASSAULT_RIFLE )){
+                chargeWeaponOrStopShooting();
+                secondary=true;
+            }
+            else
            	 shoot.shoot(enemy);
 	    fire=true;
             }
@@ -871,7 +878,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
             if(hasAmmoForWeapon && enemy.isVisible() && !isLowAmmoShieldGun){
 //                info.getBotName().setInfo("Protect");
                 //false => tir secondaire
-                shoot.shootNow(weaponry.getWeapon(weaponSelected), false, enemy.getId());
+                shoot.shoot(weaponry.getWeapon(weaponSelected), false, enemy.getId());
             }
             else{
                 shoot.stopShooting();
@@ -1362,7 +1369,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 shoot.shootSecondary();
                 ////sayGlobal("charging");
                 secondary=true;
-                if (weaponry.getCurrentWeapon().getType()==UT2004ItemType.ROCKET_LAUNCHER ){
+                if (weaponry.getCurrentWeapon().getType()==UT2004ItemType.ROCKET_LAUNCHER  &&weaponry.getCurrentWeapon().getType()==UT2004ItemType.ASSAULT_RIFLE ){
                     frontalF=frontal.isResult();
                     timer=timer+0.1;
                    // //sayGlobal(String.valueOf(timer));
