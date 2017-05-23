@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.mycompany.botcontest01;
+package com.mycompany.botcontest1;
 /**
  *
  * @author Alexandre
@@ -136,6 +136,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         getAct().act(new SetCrouch(false));
         if (event.getKiller().equals(info.getId())) {
             enemy = null;
+            shoot.stopShooting();
             situation.escape = false;
             situation.incKills();
             situation.nb_ennemy_engaged -= 1;
@@ -144,6 +145,10 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
             timer = 0.0;
             secondary = false;
             reaction=0.0;
+            distance=0.0;
+            Zdistance=0.0;
+            oldLocation=null;
+            oldVelocity=null;
         }
         if (enemy == null) {
             return;
@@ -155,7 +160,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         
     }
     private Location oldLocation;
-    private Velocity oldVelocity1;
+    private Velocity oldVelocity;
     private int modu=0;
     protected Player enemy = null;
     protected double distance = 0.0;
@@ -209,13 +214,33 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         weaponPrefs.addGeneralPref(UT2004ItemType.BIO_RIFLE, false);
         weaponPrefs.addGeneralPref(UT2004ItemType.LIGHTNING_GUN, false);
         weaponPrefs.addGeneralPref(UT2004ItemType.ASSAULT_RIFLE, false);
+        
+        weaponPrefs.newPrefsRange(800)
+                .add(UT2004ItemType.FLAK_CANNON, true)
+                .add(UT2004ItemType.ROCKET_LAUNCHER, true)
+                .add(UT2004ItemType.MINIGUN, true)
+                .add(UT2004ItemType.LINK_GUN, false)
+                .add(UT2004ItemType.BIO_RIFLE, false)
+                .add(UT2004ItemType.SHOCK_RIFLE, true);
+
+        weaponPrefs.newPrefsRange(1500)
+                .add(UT2004ItemType.ROCKET_LAUNCHER, true)
+                .add(UT2004ItemType.MINIGUN, true)
+                .add(UT2004ItemType.FLAK_CANNON, true)
+                .add(UT2004ItemType.SHOCK_RIFLE, true)
+                .add(UT2004ItemType.LINK_GUN, false);  
+      	
+        weaponPrefs.newPrefsRange(9000)
+                .add(UT2004ItemType.LIGHTNING_GUN, true)
+                .add(UT2004ItemType.SNIPER_RIFLE, true)
+                .add(UT2004ItemType.SHOCK_RIFLE, true);  
     }
 
     @Override
     public void botInitialized(GameInfo gameInfo, ConfigChange currentConfig, InitedMessage init) {
     	// By uncommenting line below, you will see all messages that goes trough GB2004 parser (GB2004 -> BOT communication)
     	//bot.getLogger().getCategory("Parser").setLevel(Level.ALL);
-        
+        shoot.setChangeWeaponCooldown(3000);
         config.setRotationHorizontalSpeed(config.getRotationSpeed().yaw * horizontalSpeed);
         //itemsToIgnore = new TabooSet<Item>(bot);
         
@@ -274,7 +299,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         });
         
         raycasting.endRayInitSequence();
-        getAct().act(new Configuration().setDrawTraceLines(true).setAutoTrace(true));
+        getAct().act(new Configuration().setDrawTraceLines(false).setAutoTrace(true));
         
     }
     
@@ -309,8 +334,10 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         situation.stuck = false;
 	hasAvoided = false;
         oldLocation=null;
-        oldVelocity1=null;
+        oldVelocity=null;
         reaction=0.0;
+        distance=0.0;
+        Zdistance=0.0;
     }
 
     @EventListener(eventClass = PlayerDamaged.class)
@@ -337,28 +364,35 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
      *
      * @throws cz.cuni.amis.pogamut.base.exceptions.PogamutException
      */
- 
+    UT2004ItemType arme=UT2004ItemType.SHOCK_RIFLE;
+    UT2004ItemType munition=UT2004ItemType.SHOCK_RIFLE_AMMO;
+    boolean hasChangedweapon =false;
     @Override
     public void logic() {
         
-
         hasAvoided=avoidProjectile();	
         
-         
+        if (enemy==null)
+            situation.stuck=false;
         situation.situationActualisation(info.getArmor(), players.getVisibleEnemies().size(), info.getHealth());
         situation.injured = senses.isBeingDamaged();        
         actionChoice = profile.decision(situation, actionChoice);
         
         if (actionChoice != Action.ESCAPE) {
-            
-           weaponry.changeWeapon(weaponPrefs.getWeaponPreference().getWeapon());
+           if (distance != 0.0){
+                shoot.changeWeapon(weaponPrefs.getWeaponPreference(distance).getWeapon());
+           }
+           else{
+                shoot.changeWeapon(weaponPrefs.getWeaponPreference().getWeapon());
+           }
+          
            if (actionChoice != Action.FIGHT) {
                
                navigation.setFocus(null);
                if (info.isShooting() || info.isSecondaryShooting() || secondary) {
                     chargeWeaponOrStopShooting();
                     //remise a zero des informations concernant l'ancien enemy visible
-                    oldVelocity1=null;
+                    oldVelocity=null;
                     oldLocation=null;
                     modu=0;
                     reaction=0.0;
@@ -443,7 +477,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
 //        if (info.isShooting() || info.isSecondaryShooting()) {
 //            chargeWeaponOrStopShooting();
 //            //remise a zero des informations concernant l'ancien enemy visible
-//            oldVelocity1=null;
+//            oldVelocity=null;
 //            oldLocation=null;
 //            modu=0;
 //        }
@@ -657,7 +691,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         if (navigation.isNavigatingToItem()) {
             if (savedItem == null) {
                 proximityItem = items.getPathNearestSpawnedItem();
-                if (Location.getDistance(proximityItem.getLocation(),bot.getLocation()) < 300){
+                if (proximityItem != null && Location.getDistance(proximityItem.getLocation(),bot.getLocation()) < 300){
                     if (proximityItem.getType().getCategory() != UT2004ItemType.Category.AMMO && proximityItem.getType().getCategory() != ItemType.Category.HEALTH) {
                         savedItem = this.item;
                         this.item = proximityItem;
@@ -953,13 +987,15 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 }
                 // On met en mémoire l'ancienne vitesse et localisation de l'enemye
                 if (modu==0){
-                    oldVelocity1=lastPlayer.getVelocity().scale(coeff);
+                    oldVelocity=lastPlayer.getVelocity().scale(coeff);
                     oldLocation = lastPlayer.getLocation();
                 }
-                modu=(modu+1) %2;
                 
+                modu=(modu+1) %2;
+                if (oldVelocity==null || oldLocation == null) 
+                     return;
                 //Si l'enemy descend une pente on tire dans la direction de son deplacement , legerement plus bas.
-                if ((int)oldVelocity1.getZ()==0 && (int)lastPlayer.getVelocity().getZ()==0 && oldLocation.getZ()>lastPlayer.getLocation().getZ()){
+                if ((int)oldVelocity.getZ()==0 && (int)lastPlayer.getVelocity().getZ()==0 && oldLocation.getZ()>lastPlayer.getLocation().getZ()){
                     //sayGlobal("going down STAIRS" );
                     //sayGlobal(String.valueOf((lastPlayer.getLocation().getZ()-oldLocation.getZ())*3));
 
@@ -969,7 +1005,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 }
                 
                  //Si l'enemy monte une pente on tire dans la direction de son deplacement , legerement plus haut.
-                if ((int)oldVelocity1.getZ()==0 && (int)lastPlayer.getVelocity().getZ()==0 && oldLocation.getZ()<lastPlayer.getLocation().getZ()){
+                if ((int)oldVelocity.getZ()==0 && (int)lastPlayer.getVelocity().getZ()==0 && oldLocation.getZ()<lastPlayer.getLocation().getZ()){
                    // sayGlobal(String.valueOf((lastPlayer.getLocation().getZ()-oldLocation.getZ())*3));
                     shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()+(lastPlayer.getLocation().getZ()-oldLocation.getZ())*3).add(lastPlayer.getVelocity().scale(coeff)));
                    // sayGlobal("climbing");
@@ -979,7 +1015,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 sensorFront=undershot.isResult();
                 if (!sensorFront){
                     //on regarde si le joueur est en train de zigzagé si oui on tire sur sa localisation 
-                    if ((oldVelocity1.getX()-lastPlayer.getVelocity().scale(coeff).getX()>150 || oldVelocity1.scale(coeff).getX()-lastPlayer.getVelocity().scale(coeff).getX()<-150)|| (oldVelocity1.scale(coeff).getY() -lastPlayer.getVelocity().scale(coeff).getY()>150 || oldVelocity1.scale(coeff).getY()-lastPlayer.getVelocity().scale(coeff).getY()<-150)){
+                    if ((oldVelocity.getX()-lastPlayer.getVelocity().scale(coeff).getX()>150 || oldVelocity.scale(coeff).getX()-lastPlayer.getVelocity().scale(coeff).getX()<-150)|| (oldVelocity.scale(coeff).getY() -lastPlayer.getVelocity().scale(coeff).getY()>150 || oldVelocity.scale(coeff).getY()-lastPlayer.getVelocity().scale(coeff).getY()<-150)){
                         if (jukeTEMP <=1){
                            // sayGlobal("JUKESHoT");
                             shoot.shoot(lastPlayer.getLocation().add(lastPlayer.getVelocity().scale(0.1)));
@@ -1042,14 +1078,15 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
             }
             // On met en mémoire l'ancienne vitesse et localisation de l'enemye
             if (modu==0){
-                oldVelocity1=lastPlayer.getVelocity().scale(coeff);
+                oldVelocity = lastPlayer.getVelocity().scale(coeff);
                 oldLocation = lastPlayer.getLocation();
             }
             modu=(modu+1) %2;
-
+            if (oldVelocity==null || oldLocation == null) 
+                return;
             //Si l'enemy descend une pente on tire dans la direction de son deplacement , legerement plus bas.
-            if ((int)oldVelocity1.getZ()==0 && (int)lastPlayer.getVelocity().getZ()==0 && oldLocation.getZ()>lastPlayer.getLocation().getZ()){
-                sayGlobal("going down STAIRS" );
+            if ((int)oldVelocity.getZ()==0 && (int)lastPlayer.getVelocity().getZ()==0 && oldLocation.getZ()>lastPlayer.getLocation().getZ()){
+                //sayGlobal("going down STAIRS" );
                 //sayGlobal(String.valueOf((lastPlayer.getLocation().getZ()-oldLocation.getZ())*3));
 
                 shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()-(lastPlayer.getLocation().getZ()-oldLocation.getZ())*3).add(lastPlayer.getVelocity().scale(coeff)));
@@ -1058,7 +1095,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
             }
 
              //Si l'enemy monte une pente on tire dans la direction de son deplacement , legerement plus haut.
-            if ((int)oldVelocity1.getZ()==0 && (int)lastPlayer.getVelocity().getZ()==0 && oldLocation.getZ()<lastPlayer.getLocation().getZ()){
+            if ((int)oldVelocity.getZ()==0 && (int)lastPlayer.getVelocity().getZ()==0 && oldLocation.getZ()<lastPlayer.getLocation().getZ()){
                // sayGlobal(String.valueOf((lastPlayer.getLocation().getZ()-oldLocation.getZ())*3));
                 shoot.shoot(lastPlayer.getLocation().setZ(lastPlayer.getLocation().getZ()+(lastPlayer.getLocation().getZ()-oldLocation.getZ())*3).add(lastPlayer.getVelocity().scale(coeff)));
                 sayGlobal("climbing");
@@ -1068,7 +1105,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
             sensorFront=front.isResult();
             if (!sensorFront){
                 //on regarde si le joueur est en train de zigzagé si oui on tire sur sa localisation 
-                if ((oldVelocity1.getX()-lastPlayer.getVelocity().scale(coeff).getX()>150 || oldVelocity1.scale(coeff).getX()-lastPlayer.getVelocity().scale(coeff).getX()<-150)|| (oldVelocity1.scale(coeff).getY() -lastPlayer.getVelocity().scale(coeff).getY()>150 || oldVelocity1.scale(coeff).getY()-lastPlayer.getVelocity().scale(coeff).getY()<-150)){
+                if ((oldVelocity.getX()-lastPlayer.getVelocity().scale(coeff).getX()>150 || oldVelocity.scale(coeff).getX()-lastPlayer.getVelocity().scale(coeff).getX()<-150)|| (oldVelocity.scale(coeff).getY() -lastPlayer.getVelocity().scale(coeff).getY()>150 || oldVelocity.scale(coeff).getY()-lastPlayer.getVelocity().scale(coeff).getY()<-150)){
                     if (jukeTEMP <=1){
                        // sayGlobal("JUKESHoT");
                         shoot.shoot(lastPlayer.getLocation().add(lastPlayer.getVelocity().scale(0.1)));
