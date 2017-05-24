@@ -17,9 +17,9 @@
 package tools;
 
 /**
- *
- * @author Anthony BORDEAU
+ * @author K-A-C-A-Team
  */
+
 public enum Action {
     
     FIGHT,

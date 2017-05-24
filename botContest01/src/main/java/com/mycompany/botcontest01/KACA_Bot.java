@@ -14,14 +14,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.mycompany.botcontest1;
+package com.mycompany.botcontest01;
 /**
- *
- * @author Alexandre
+ * @author K-A-C-A-Team
  */
 
 
-import cz.cuni.amis.introspection.java.JProp;
 import cz.cuni.amis.pogamut.base.communication.worldview.listener.annotation.EventListener;
 import cz.cuni.amis.pogamut.base.utils.guice.AgentScoped;
 import cz.cuni.amis.pogamut.base.utils.math.DistanceUtils;
@@ -59,7 +57,6 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     Item savedItem = null;
     
     private long escapeCount = 0;
-    //private final int healthNeeded = 60;
     
     private final long logic_escape = 5;
     private int huntCount = 0;
@@ -84,8 +81,6 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     protected static final String RIGHT_BACK = "RightBack";
     protected static final String BEHIND = "Behind";
     
-    protected static final String LEFT_FRONT = "LeftFront";
-    protected static final String RIGHT_FRONT = "RightFront";
     protected static final String LEFT = "Left";
     protected static final String RIGHT = "Right";
     
@@ -106,7 +101,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     private AutoTraceRay frontal;
 
     private AutoTraceRay leftshot, undershot, rightshot, upshot, frontshot;
-    private AutoTraceRay leftBack, back, rightBack, right, left, leftFront, rightFront, behind;
+    private AutoTraceRay leftBack, back, rightBack, right, left, behind;
     private AutoTraceRay front, upFront, downFront;
     
     boolean frontalF;
@@ -124,6 +119,10 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     private boolean hasAvoided = false;
     private int previousChoiceBackward = 0;
     protected double reaction = 0.0;
+    
+    private UT2004ItemType arme=UT2004ItemType.SHOCK_RIFLE;
+    private UT2004ItemType munition=UT2004ItemType.SHOCK_RIFLE_AMMO;
+    protected List<Item> CollectItems = null;
    
     /**
      * {@link JoueurTuer} compteur pour le nombre de tuer.
@@ -140,6 +139,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
             situation.nb_ennemy_engaged -= 1;
             profile.angerModified(-5);
             profile.trustModifiedBy(8);
+            profile.cautionModifiedBy(4);
             timer = 0.0;
             secondary = false;
             reaction=0.0;
@@ -250,8 +250,6 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         raycasting.createRay(BACK,   new Vector3d(-1, 0, 0), longRay, fastTrace, floorCorrection, traceActor);
         raycasting.createRay(LEFT_BACK,  new Vector3d(-1, -1, 0), mediumRay, fastTrace, floorCorrection, traceActor);
         raycasting.createRay(RIGHT_BACK, new Vector3d(-1, 1, 0), mediumRay, fastTrace, floorCorrection, traceActor);
-        raycasting.createRay(LEFT_FRONT,  new Vector3d(1, -1, 0), mediumRay, fastTrace, floorCorrection, traceActor);
-        raycasting.createRay(RIGHT_FRONT, new Vector3d(1, 1, 0), mediumRay, fastTrace, floorCorrection, traceActor);
         raycasting.createRay(LEFT,  new Vector3d(0, -1, 0), shortRay, fastTrace, floorCorrection, traceActor);
         raycasting.createRay(RIGHT, new Vector3d(0, 1, 0), shortRay, fastTrace, floorCorrection, traceActor);
         raycasting.createRay(BEHIND, new Vector3d(-1, 0, -2), mediumRay, fastTrace, floorCorrection, traceActor);
@@ -276,11 +274,9 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 // for convenience
                 leftBack = raycasting.getRay(LEFT_BACK);
                 left = raycasting.getRay(LEFT);
-                leftFront = raycasting.getRay(LEFT_FRONT);
                 back = raycasting.getRay(BACK);
                 rightBack = raycasting.getRay(RIGHT_BACK);
                 right = raycasting.getRay(RIGHT);
-                rightFront = raycasting.getRay(RIGHT_FRONT);
                 behind = raycasting.getRay(BEHIND);
                 frontshot = raycasting.getRay(FRONTSHOT);
                 undershot=raycasting.getRay(UNDERSHOT);
@@ -361,10 +357,10 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
      *
      * @throws cz.cuni.amis.pogamut.base.exceptions.PogamutException
      */
-    UT2004ItemType arme=UT2004ItemType.SHOCK_RIFLE;
-    UT2004ItemType munition=UT2004ItemType.SHOCK_RIFLE_AMMO;
+    
     @Override
     public void logic() {
+        
         hasAvoided=avoidProjectile();	
         
         if (enemy==null)
@@ -442,66 +438,6 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                     this.healingState();
                 }
         }
-        
-//        if (situation.justEscaped) {
-//            ++situation.logicIterationNumber;
-//            if (situation.logicIterationNumber > 8){
-//                situation.justEscaped = false;
-//                situation.logicIterationNumber = 0;
-//            }
-//        }
-//        situation.escape = info.getHealth() < 40 && !situation.justEscaped;
-        
-        // 1) niveau de vie faible
-//        if (enemy != null && situation.escape && !hasLowAmmoForWeapon(UT2004ItemType.SHIELD_GUN, 0.1)) {
-//            this.escapeState();
-//            return;
-//        }
-//        else { 
-//            situation.escape = false;
-//        }
-//        
-//        //prends une arme de la liste des preferences
-//        weaponry.changeWeapon(weaponPrefs.getWeaponPreference().getWeapon());
-//        
-//        // 2) enemy repéré ? 	-> poursuivre (tirer / suivre)
-//        if (situation.engage && players.canSeeEnemies() && weaponry.hasLoadedWeapon()) {
-//            initRayToEnnemi();
-//            if (secondary)
-//                releaseWeapon();
-//            engageState();
-//            return;
-//        }
-//        navigation.setFocus(null);
-//        // 3) en train de tiré    -> arrête de tiré si l'enemy est perdu de vue
-//        if (info.isShooting() || info.isSecondaryShooting()) {
-//            chargeWeaponOrStopShooting();
-//            //remise a zero des informations concernant l'ancien enemy visible
-//            oldVelocity=null;
-//            oldLocation=null;
-//            modu=0;
-//        }
-//
-//        // 4) dommages reçu ?	-> tourne sur lui même pour chercher l'enemy
-//        if (senses.isBeingDamaged()) {
-//            this.injuredState();
-//            return;
-//        }
-//        
-//        // 5) enemy poursuivis -> va à la dernière position connue de l'enemy
-//        if (enemy != null && situation.hunt && weaponry.hasLoadedWeapon()) {
-//            this.huntState();
-//            return;
-//        }
-//        
-//        // 6) blessé ?			-> cherche des soins
-//        if (situation.healthCollect && info.getHealth() < healthNeeded) {
-//            this.healingState();
-//            return;
-//        }
-//
-//        // 7) rien ... ramasses les items
-//        collectState();
         
     }
 
@@ -688,7 +624,6 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
     ///////////////////////////
     // Etat Collecter Items //
     /////////////////////////
-    protected List<Item> CollectItems = null;
 
     protected void collectState() {
         //log.info("Décision: ITEMS");
@@ -1102,7 +1037,7 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
                 return;
             } 
             //On regarde le rayon envoyé legerement vers le bas, si il n'est pas interrompu
-            sensorFront=front.isResult();
+            sensorFront=frontshot.isResult();
             if (!sensorFront){
                 //on regarde si le joueur est en train de zigzagé si oui on tire sur sa localisation 
                 if ((oldVelocity.getX()-lastPlayer.getVelocity().scale(coeff).getX()>150 || oldVelocity.scale(coeff).getX()-lastPlayer.getVelocity().scale(coeff).getX()<-150)|| (oldVelocity.scale(coeff).getY() -lastPlayer.getVelocity().scale(coeff).getY()>150 || oldVelocity.scale(coeff).getY()-lastPlayer.getVelocity().scale(coeff).getY()<-150)){

@@ -17,9 +17,9 @@
 package tools;
 
 /**
- *
- * @author Anthony BORDEAU
+ * @author K-A-C-A-Team
  */
+
 public class Situation {
     
     //booléens décrivant ce que fait le bot

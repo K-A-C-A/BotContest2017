@@ -18,7 +18,7 @@
 package tools;
 
 /**
- * @author Anthony BORDEAU
+ * @author K-A-C-A-Team
  */
 
 public class Profile {
@@ -158,7 +158,7 @@ public class Profile {
                 
                 return Action.INJURED;
                 
-            } //sinon on continue le mode passif ou il n'a pas d'instruction en priorité (recherche d'objet/vie/ennemi)
+            } //sinon on fait une collecte basique
             else
                 
                 return Action.BASIC_COLLECT;
