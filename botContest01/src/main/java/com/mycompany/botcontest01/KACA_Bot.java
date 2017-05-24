@@ -829,33 +829,6 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
 
     }
     
-    public static void main(String[] args) throws PogamutException {
-        
-        String host = "localhost";
-        int port = 3000;
-
-        if (args.length > 0)
-        {
-                host = args[0];
-        }
-        if (args.length > 1)
-        {
-                String customPort = args[1];
-                try
-                {
-                        port = Integer.parseInt(customPort);
-                }
-                catch (NumberFormatException e)
-                {
-                        System.out.println("Invalid port. Expecting numeric. Resuming with default port: "+port);
-                }
-        }
-        
-        UT2004BotRunner runner = new UT2004BotRunner(KACA_Bot.class, "K-A-C-A", host, port);
-        runner.setMain(true);
-        runner.setLogLevel(Level.INFO);
-        runner.startAgents(1);
-    }
     private double calculCoeff(double distance){
     double coeff1=1;
     if (weaponry.getCurrentWeapon().getType()==UT2004ItemType.ROCKET_LAUNCHER )
@@ -1335,5 +1308,32 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
         ////sayGlobal("second"+String.valueOf(info.isSecondaryShooting()));
         timer=0.0;
       }
-    
+      
+        public static void main(String[] args) throws PogamutException {
+        
+        String host = "localhost";
+        int port = 3000;
+
+        if (args.length > 0)
+        {
+                host = args[0];
+        }
+        if (args.length > 1)
+        {
+                String customPort = args[1];
+                try
+                {
+                        port = Integer.parseInt(customPort);
+                }
+                catch (NumberFormatException e)
+                {
+                        System.out.println("Invalid port. Expecting numeric. Resuming with default port: "+port);
+                }
+        }
+        
+        UT2004BotRunner runner = new UT2004BotRunner(KACA_Bot.class, "K-A-C-A", host, port);
+        runner.setMain(true);
+        runner.setLogLevel(Level.INFO);
+        runner.startAgents(1);
+    }
 }
