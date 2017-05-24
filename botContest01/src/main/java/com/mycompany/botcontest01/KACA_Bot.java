@@ -443,6 +443,9 @@ public class KACA_Bot extends UT2004BotModuleController<UT2004Bot> {
 
     protected boolean goToPlayer = false;
 
+   ///////////////////
+   // Etat Engager //
+   /////////////////
    protected void engageState() {
         //log.info("Decision: Engager");
         //config.setName("Hunter [Engager]");
